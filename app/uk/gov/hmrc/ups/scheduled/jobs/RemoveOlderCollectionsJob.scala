@@ -60,7 +60,9 @@ class RemoveOlderCollectionsJob @Inject()(runMode: RunMode, configuration: Confi
   override def name: String = "removeOlderCollections"
 
   private def durationFromConfig(propertyKey: String): FiniteDuration = {
+    Logger.warn("-------------------------  " + name + " " + propertyKey)
     val millis = configuration.getMillis(s"${runMode.env}.scheduling.$name.$propertyKey")
+    Logger.warn("-------------------------" + millis)
     FiniteDuration(millis, TimeUnit.MILLISECONDS)
   }
 

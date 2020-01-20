@@ -57,7 +57,9 @@ class UpdatedPrintSuppressionJob @Inject()(runMode: RunMode, configuration: Conf
   )
 
   private def durationFromConfig(propertyKey: String): FiniteDuration = {
+    Logger.warn("-------------------------  " + name + " " + propertyKey)
     val millis: Long = configuration.getMillis(s"${runMode.env}.scheduling.$name.$propertyKey")
+    Logger.warn("-------------------------" + millis)
     FiniteDuration(millis, TimeUnit.MILLISECONDS)
   }
   override def initialDelay: FiniteDuration = durationFromConfig("initialDelay")
