@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPe
 
   "UpdatedPrintSuppressionsController" should {
     "" in {
-      val result = controller.list(None,None)
+      val result = controller.list(None, None)
       result mustNot be(null)
     }
   }

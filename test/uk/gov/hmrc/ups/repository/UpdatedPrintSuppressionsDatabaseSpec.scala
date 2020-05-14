@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,11 @@ import scala.concurrent.Future
 
 class UpdatedPrintSuppressionsDatabaseSpec extends PlaySpec with MongoSupport with ScalaFutures with BeforeAndAfterAll with GuiceOneAppPerSuite {
 
-  override def fakeApplication(): Application = new GuiceApplicationBuilder().configure(
-    s"mongodb.uri" -> s"mongodb://localhost:27017/$databaseName",
-    "play.http.router" -> "testOnlyDoNotUseInAppConf.Routes",
-    "metrics.jvm" -> false)
-    .overrides(play.api.inject.bind[ReactiveMongoComponent].to(testMongoComponent)).build()
+  override def fakeApplication(): Application =
+    new GuiceApplicationBuilder()
+      .configure(s"mongodb.uri" -> s"mongodb://localhost:27017/$databaseName", "play.http.router" -> "testOnlyDoNotUseInAppConf.Routes", "metrics.jvm" -> false)
+      .overrides(play.api.inject.bind[ReactiveMongoComponent].to(testMongoComponent))
+      .build()
 
   private val updatedPrintSuppressionsDatabase = app.injector.instanceOf[UpdatedPrintSuppressionsDatabase]
   private val today = LocalDate.now()
@@ -64,7 +64,7 @@ class UpdatedPrintSuppressionsDatabaseSpec extends PlaySpec with MongoSupport wi
           )
         )
       )
-      updatedPrintSuppressionsDatabase.upsCollectionNames.futureValue must contain only(upsCollectionName1, upsCollectionName2)
+      updatedPrintSuppressionsDatabase.upsCollectionNames.futureValue must contain only (upsCollectionName1, upsCollectionName2)
     }
   }
 

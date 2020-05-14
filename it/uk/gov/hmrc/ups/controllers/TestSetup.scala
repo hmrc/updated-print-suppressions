@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 HM Revenue & Customs
+ * Copyright 2020 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,9 @@ import play.api.libs.json.OFormat
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.{MongoCounterRepository, UpdatedPrintSuppressionsRepository}
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 
 import scala.concurrent.ExecutionContextExecutor
-
 
 trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach {
 
