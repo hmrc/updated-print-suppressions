@@ -32,12 +32,12 @@ object AppDependencies {
   )
 
   val test = Set(
-    "uk.gov.hmrc"             %% "reactivemongo-test"       % "4.15.0-play-26"    % "test,it",
+    "uk.gov.hmrc"             %% "reactivemongo-test"       % "4.22.0-play-26"    % "test,it",
     "org.mockito"             %  "mockito-all"              % "1.9.5"             % "test,it",
     "com.github.tomakehurst"  % "wiremock-jre8"             % "2.25.1"            % "test,it",
     "org.scalatest"           %% "scalatest"                % "3.0.8"             % "test,it",
     "org.pegdown"             %  "pegdown"                  % "1.6.0"             % "test,it",
-    "org.scalatestplus.play"  %% "scalatestplus-play"       % "3.1.2"             % "test,it",
+    "org.scalatestplus.play"  %% "scalatestplus-play"       % "3.1.3"             % "test,it",
     "uk.gov.hmrc"             %% "service-integration-test" % "0.9.0-play-26"     % "test,it",
     "com.typesafe.play"       %% "play-test"                % PlayVersion.current % "test,it",
     "org.skyscreamer"         % "jsonassert"                % "1.5.0"             % "it"
