@@ -22,27 +22,27 @@ object AppDependencies {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc"             %% "bootstrap-play-26"      % "1.1.0",
-    "uk.gov.hmrc"             %% "simple-reactivemongo"   % "7.20.0-play-26",
+    "uk.gov.hmrc"             %% "bootstrap-play-26"      % "2.2.0",
+    "uk.gov.hmrc"             %% "simple-reactivemongo"   % "7.31.0-play-26",
     "uk.gov.hmrc"             %% "play-scheduling"        % "7.1.0-play-26",
     "uk.gov.hmrc"             %% "domain"                 % "5.6.0-play-26",
-    "uk.gov.hmrc"             %% "work-item-repo"         % "6.8.0-play-26",
+    "uk.gov.hmrc"             %% "work-item-repo"         % "7.11.0-play-26",
     "net.codingwell"         %% "scala-guice"              % "4.2.6",
     "com.typesafe.play"       %% "play-json-joda"         % "2.6.14"
   )
 
   val test = Set(
-    "uk.gov.hmrc"             %% "reactivemongo-test"       % "4.15.0-play-26"    % "test,it",
+    "uk.gov.hmrc"             %% "reactivemongo-test"       % "4.22.0-play-26"    % "test,it",
     "org.mockito"             %  "mockito-all"              % "1.9.5"             % "test,it",
     "com.github.tomakehurst"  % "wiremock-jre8"             % "2.25.1"            % "test,it",
     "org.scalatest"           %% "scalatest"                % "3.0.8"             % "test,it",
     "org.pegdown"             %  "pegdown"                  % "1.6.0"             % "test,it",
-    "org.scalatestplus.play"  %% "scalatestplus-play"       % "3.1.2"             % "test,it",
+    "org.scalatestplus.play"  %% "scalatestplus-play"       % "3.1.3"             % "test,it",
     "uk.gov.hmrc"             %% "service-integration-test" % "0.9.0-play-26"     % "test,it",
     "com.typesafe.play"       %% "play-test"                % PlayVersion.current % "test,it",
     "org.skyscreamer"         % "jsonassert"                % "1.5.0"             % "it"
   )
 
-  val overrides = Set()
+  val overrides = Seq.empty[sbt.librarymanagement.ModuleID]
 
 }
