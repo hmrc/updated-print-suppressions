@@ -27,7 +27,7 @@ import uk.gov.hmrc.ups.model.PrintPreference
 import play.api.test.Helpers._
 import play.modules.reactivemongo.ReactiveMongoComponent
 
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 @DoNotDiscover
 class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with MongoSpecSupport {
@@ -35,7 +35,7 @@ class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with MongoSp
   val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
   val mongoComponent = app.injector.instanceOf[ReactiveMongoComponent]
 
-  implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val BATCH_SIZE: Int = 100000
 
