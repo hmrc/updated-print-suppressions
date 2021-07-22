@@ -53,31 +53,25 @@ class EntityResolverConnectorSpec
 
   "calling entity resolver get entity endpoint" should {
     "return an entity matching the given entityId" in new TestCase {
-      when(mockHttpClient.GET[HttpResponse](any())(any(), any(), any()))
+      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(Status.OK, Some(Json.toJson(entity)))))
 
       connector.getTaxIdentifiers(randomEntityId).futureValue must be(Right(Some(entity)))
-
-      verify(mockHttpClient).GET[HttpResponse](any())(any(), any(), any())
     }
 
     "return None if no entry matching entityId" in new TestCase {
-      when(mockHttpClient.GET[HttpResponse](any())(any(), any(), any()))
+      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(Status.NOT_FOUND)))
 
       connector.getTaxIdentifiers(randomEntityId).futureValue must be(Right(None))
-
-      verify(mockHttpClient).GET[HttpResponse](any())(any(), any(), any())
     }
 
     "handle unexpected response from preferences" in new TestCase {
       val expectedStatus: Int = Status.INTERNAL_SERVER_ERROR
-      when(mockHttpClient.GET[HttpResponse](any())(any(), any(), any()))
+      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
         .thenReturn(Future.successful(HttpResponse(expectedStatus)))
 
       connector.getTaxIdentifiers(randomEntityId).futureValue must be(Left(expectedStatus))
-
-      verify(mockHttpClient).GET[HttpResponse](any())(any(), any(), any())
     }
   }
 

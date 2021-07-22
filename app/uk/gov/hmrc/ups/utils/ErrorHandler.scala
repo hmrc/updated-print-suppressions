@@ -22,6 +22,7 @@ import play.api.http.Status._
 import play.api.libs.json.Json.toJson
 import play.api.mvc.Results._
 import play.api.mvc.{ RequestHeader, Result }
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
 import uk.gov.hmrc.play.bootstrap.http.{ ErrorResponse, JsonErrorHandler }
@@ -33,7 +34,9 @@ class ErrorHandler @Inject()(auditConnector: AuditConnector, httpAuditEvent: Htt
 
   import httpAuditEvent.dataEvent
 
-  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] =
+  override def onClientError(request: RequestHeader, statusCode: Int, message: String): Future[Result] = {
+    implicit val headerCarrier: HeaderCarrier = hc(request)
+
     statusCode match {
       case BAD_REQUEST =>
         auditConnector.sendEvent(
@@ -47,5 +50,5 @@ class ErrorHandler @Inject()(auditConnector: AuditConnector, httpAuditEvent: Htt
         Future.successful(BadRequest(toJson(ErrorResponse(BAD_REQUEST, message))))
       case _ => super.onClientError(request, statusCode, message)
     }
-
+  }
 }

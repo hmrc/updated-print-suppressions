@@ -26,7 +26,7 @@ import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 
-import scala.concurrent.ExecutionContextExecutor
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach {
 
@@ -40,7 +40,7 @@ trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach {
   val yesterdayAsString: String = yesterday.toString("yyyy-MM-dd")
 
   implicit val ppFormats: OFormat[PrintPreference] = PrintPreference.formats
-  implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   // Reset the counters
   await(mongoCounterRepository.removeAll())
