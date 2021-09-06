@@ -43,7 +43,7 @@ class PreferencesProcessor @Inject()(
   entityResolverConnector: EntityResolverConnector)(implicit ec: ExecutionContext) {
 
   val db = mongoComponent.mongoConnector.db
-
+  val logger: Logger = Logger(this.getClass())
   val connectionOnce: JSONCollection =
     db().collection[JSONCollection](UpdatedPrintSuppressions.repoNameTemplate(LocalDate.now()))
 
@@ -82,12 +82,12 @@ class PreferencesProcessor @Inject()(
                 accumulator.copy(processed = accumulator.processed + 1)
 
               case Failed(msg, ex) =>
-                ex.fold(Logger.warn(msg)) { Logger.warn(msg, _) }
+                ex.fold(logger.warn(msg)) { logger.warn(msg, _) }
                 incrementOnFailure(accumulator)
             }
             .recoverWith {
               case ex =>
-                Logger.error(s"terminating early due to unexpected failure", ex)
+                logger.error(s"terminating early due to unexpected failure", ex)
                 Future.failed(EarlyTermination(incrementOnFailure(accumulator)))
             }
         }

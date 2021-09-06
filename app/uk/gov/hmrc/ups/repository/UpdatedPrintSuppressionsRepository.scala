@@ -59,7 +59,8 @@ class UpdatedPrintSuppressionsRepository(
       mongoComponent.mongoConnector.db,
       UpdatedPrintSuppressions.formats) {
 
-  Logger.error(s"Connection URI: ${mongoComponent.mongoConnector.mongoConnectionUri}")
+val logger: Logger = Logger(this.getClass())  
+  logger.error(s"Connection URI: ${mongoComponent.mongoConnector.mongoConnectionUri}")
 
   private val counterRepoDate = UpdatedPrintSuppressions.toString(date)
 
@@ -131,7 +132,7 @@ class UpdatedPrintSuppressionsRepository(
           }
           .recover {
             case e: CommandError if e.getMessage.contains("11000") =>
-              Logger.warn(s"failed to insert print preference $printPreference updated at ${updatedAt.getMillis}", e)
+              logger.warn(s"failed to insert print preference $printPreference updated at ${updatedAt.getMillis}", e)
               ()
           }
     }

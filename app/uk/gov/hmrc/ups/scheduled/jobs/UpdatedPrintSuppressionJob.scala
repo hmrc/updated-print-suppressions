@@ -24,7 +24,7 @@ import play.api.{ Configuration, Logger }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.lock.{ LockMongoRepository, LockRepository }
-import uk.gov.hmrc.play.bootstrap.config.RunMode
+// import uk.gov.hmrc.play.bootstrap.config.RunMode
 import uk.gov.hmrc.play.scheduling.LockedScheduledJob
 import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 
@@ -33,18 +33,19 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class UpdatedPrintSuppressionJob @Inject()(
-  runMode: RunMode,
   configuration: Configuration,
   reactiveMongoComponent: ReactiveMongoComponent,
   preferencesProcessor: PreferencesProcessor)
     extends LockedScheduledJob {
 
   override lazy val releaseLockAfter: Duration = Duration.millis(
-    configuration.getMillis(s"${runMode.env}.updatedPrintSuppressions.releaseLockAfter")
+    configuration.getMillis(s"updatedPrintSuppressions.releaseLockAfter")
   )
 
+  val logger: Logger = Logger(this.getClass())
+
   def executeInLock(implicit ec: ExecutionContext): Future[Result] = {
-    Logger.info(s"Start UpdatedPrintSuppressionJob")
+    logger.info(s"Start UpdatedPrintSuppressionJob")
     preferencesProcessor.run(HeaderCarrier()).map { totals =>
       Result(
         s"UpdatedPrintSuppressions: ${totals.processed} items processed with ${totals.failed} failures"
@@ -59,7 +60,7 @@ class UpdatedPrintSuppressionJob @Inject()(
   )
 
   private def durationFromConfig(propertyKey: String): FiniteDuration = {
-    val millis: Long = configuration.getMillis(s"${runMode.env}.scheduling.$name.$propertyKey")
+    val millis: Long = configuration.getMillis(s"scheduling.$name.$propertyKey")
     FiniteDuration(millis, TimeUnit.MILLISECONDS)
   }
   override def initialDelay: FiniteDuration = durationFromConfig("initialDelay")
