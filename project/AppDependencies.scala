@@ -22,14 +22,14 @@ object AppDependencies {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc"       %% "bootstrap-backend-play-27"    % "4.3.0",
-    "uk.gov.hmrc"       %% "auth-client"          % "5.6.0-play-27",
-    "uk.gov.hmrc"       %% "simple-reactivemongo" % "8.0.0-play-27",
-    "uk.gov.hmrc"       %% "play-scheduling"      % "7.10.0",
-    "uk.gov.hmrc"       %% "domain"               % "6.2.0-play-27",
-    "uk.gov.hmrc"       %% "work-item-repo"       % "8.1.0-play-27",
-    "net.codingwell"    %% "scala-guice"          % "4.2.6",
-    "com.typesafe.play" %% "play-json-joda"       % "2.6.14"
+    "uk.gov.hmrc"       %% "bootstrap-backend-play-27" % "4.3.0",
+    "uk.gov.hmrc"       %% "auth-client"              % "5.6.0-play-27",
+    "uk.gov.hmrc"       %% "simple-reactivemongo"     % "8.0.0-play-27",
+    "uk.gov.hmrc"       %% "play-scheduling-play-27"  % "7.10.0",
+    "uk.gov.hmrc"       %% "domain"                   % "6.2.0-play-27",
+    "uk.gov.hmrc"       %% "work-item-repo"           % "8.1.0-play-27",
+    "net.codingwell"    %% "scala-guice"              % "4.2.6",
+    "com.typesafe.play" %% "play-json-joda"           % "2.6.14"
   )
 
   val test = Set(

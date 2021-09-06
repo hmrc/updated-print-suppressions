@@ -33,6 +33,7 @@ class UpsMain @Inject()(
   configuration: Configuration,
   lifecycle: ApplicationLifecycle)(implicit val ec: ExecutionContext) {
 
+    val logger: Logger = Logger(this.getClass())
   lifecycle.addStopHook(() =>
     Future {
       actorSystem.terminate()
@@ -46,6 +47,6 @@ class UpsMain @Inject()(
 
   def scheduleJob(job: ScheduledJob)(implicit ec: ExecutionContext): Unit =
     actorSystem.scheduler.schedule(job.initialDelay, job.interval)(job.execute.map { result =>
-      Logger.debug(s"Job ${job.name} result: ${result.message}")
+      logger.debug(s"Job ${job.name} result: ${result.message}")
     })
 }
