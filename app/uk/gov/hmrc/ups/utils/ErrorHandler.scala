@@ -25,7 +25,10 @@ import play.api.mvc.{ RequestHeader, Result }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.config.HttpAuditEvent
-import uk.gov.hmrc.play.bootstrap.http.{ ErrorResponse, JsonErrorHandler }
+import uk.gov.hmrc.play.bootstrap.http.JsonErrorHandler
+import uk.gov.hmrc.play.bootstrap.backend.http.ErrorResponse
+
+
 
 import scala.concurrent.{ ExecutionContext, Future }
 

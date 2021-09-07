@@ -59,7 +59,6 @@ class UpdatedPrintSuppressionsRepository(
       mongoComponent.mongoConnector.db,
       UpdatedPrintSuppressions.formats) {
 
-val logger: Logger = Logger(this.getClass())  
   logger.error(s"Connection URI: ${mongoComponent.mongoConnector.mongoConnectionUri}")
 
   private val counterRepoDate = UpdatedPrintSuppressions.toString(date)
