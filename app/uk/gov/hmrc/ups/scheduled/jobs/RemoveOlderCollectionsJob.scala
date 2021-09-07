@@ -20,7 +20,6 @@ import java.util.concurrent.TimeUnit
 
 import javax.inject.{ Inject, Singleton }
 import play.api.{ Configuration, Logger }
-// import uk.gov.hmrc.play.bootstrap.config.RunMode
 import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsDatabase
 import uk.gov.hmrc.ups.scheduled.{ Failed, RemoveOlderCollections, Succeeded }
@@ -31,7 +30,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 @Singleton
 class RemoveOlderCollectionsJob @Inject()(configuration: Configuration, updatedPrintSuppressionsDatabase: UpdatedPrintSuppressionsDatabase)
     extends ExclusiveScheduledJob with RemoveOlderCollections {
-val logger: Logger = Logger(this.getClass())
+  val logger: Logger = Logger(this.getClass())
   override def executeInMutex(implicit ec: ExecutionContext): Future[Result] =
     removeOlderThan(durationInDays).map { totals =>
       (totals.failures ++ totals.successes).foreach {

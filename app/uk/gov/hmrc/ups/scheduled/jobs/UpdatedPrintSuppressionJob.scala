@@ -24,7 +24,6 @@ import play.api.{ Configuration, Logger }
 import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.lock.{ LockMongoRepository, LockRepository }
-// import uk.gov.hmrc.play.bootstrap.config.RunMode
 import uk.gov.hmrc.play.scheduling.LockedScheduledJob
 import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 

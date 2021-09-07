@@ -33,8 +33,7 @@ import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class PreferencesConnector @Inject()(httpClient: HttpClient, configuration: Configuration, servicesConfig: ServicesConfig)(
-  implicit ec: ExecutionContext) {
+class PreferencesConnector @Inject()(httpClient: HttpClient, configuration: Configuration, servicesConfig: ServicesConfig)(implicit ec: ExecutionContext) {
 
   implicit val dateFormatDefault: Format[DateTime] = new Format[DateTime] {
     override def reads(json: JsValue): JsResult[DateTime] = JodaReads.DefaultJodaDateTimeReads.reads(json)

@@ -20,20 +20,16 @@ import akka.actor.ActorSystem
 import javax.inject.{ Inject, Singleton }
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
-import play.api.{ Configuration, Environment }
+import play.api.Configuration
 import uk.gov.hmrc.play.scheduling.ScheduledJob
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class UpsMain @Inject()(
-  env: Environment,
-  scheduledJobs: Seq[ScheduledJob],
-  actorSystem: ActorSystem,
-  configuration: Configuration,
-  lifecycle: ApplicationLifecycle)(implicit val ec: ExecutionContext) {
+class UpsMain @Inject()(scheduledJobs: Seq[ScheduledJob], actorSystem: ActorSystem, configuration: Configuration, lifecycle: ApplicationLifecycle)(
+  implicit val ec: ExecutionContext) {
 
-    val logger: Logger = Logger(this.getClass())
+  val logger: Logger = Logger(this.getClass())
   lifecycle.addStopHook(() =>
     Future {
       actorSystem.terminate()
@@ -42,7 +38,7 @@ class UpsMain @Inject()(
   scheduledJobs.foreach(scheduleJob)
 
   val refreshInterval = configuration
-    .getMillis(s"${env.mode}.microservice.metrics.gauges.interval")
+    .getMillis(s"microservice.metrics.gauges.interval")
     .toInt
 
   def scheduleJob(job: ScheduledJob)(implicit ec: ExecutionContext): Unit =

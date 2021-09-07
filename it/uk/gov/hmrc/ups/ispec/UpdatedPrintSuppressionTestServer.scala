@@ -32,7 +32,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
 import reactivemongo.play.json.ImplicitBSONHandlers._
 import uk.gov.hmrc.integration.ServiceSpec
-import uk.gov.hmrc.play.bootstrap.config.{ RunMode, ServicesConfig }
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
