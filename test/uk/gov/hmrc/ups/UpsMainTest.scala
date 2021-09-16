@@ -49,9 +49,6 @@ class UpsMainTest extends PlaySpec with GuiceOneAppPerTest with MockitoSugar wit
           bind[UpsMain].asEagerSingleton()
         }
       })
-      .configure(
-        "metrics.enabled" -> "false"
-      )
       .build()
 
   "assert that a job is called after one second" in {

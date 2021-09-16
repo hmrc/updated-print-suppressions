@@ -23,7 +23,7 @@ import play.api.libs.json.JodaWrites.{ JodaDateTimeWrites => _ }
 import play.api.libs.json.{ Format, JodaReads, JodaWrites, JsResult, JsValue, Json }
 import play.api.{ Configuration, Logger }
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse }
-import uk.gov.hmrc.play.bootstrap.config.{ RunMode, ServicesConfig }
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.model.{ Filters, PulledItem, WorkItemRequest }
@@ -33,21 +33,21 @@ import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class PreferencesConnector @Inject()(httpClient: HttpClient, runMode: RunMode, configuration: Configuration, servicesConfig: ServicesConfig)(
-  implicit ec: ExecutionContext) {
+class PreferencesConnector @Inject()(httpClient: HttpClient, configuration: Configuration, servicesConfig: ServicesConfig)(implicit ec: ExecutionContext) {
 
   implicit val dateFormatDefault: Format[DateTime] = new Format[DateTime] {
     override def reads(json: JsValue): JsResult[DateTime] = JodaReads.DefaultJodaDateTimeReads.reads(json)
     override def writes(o: DateTime): JsValue = JodaWrites.JodaDateTimeNumberWrites.writes(o)
   }
 
+  val logger: Logger = Logger(this.getClass())
   implicit val optionalPullItemReads: HttpReads[Option[PulledItem]] = new HttpReads[Option[PulledItem]] {
     override def read(method: String, url: String, response: HttpResponse): Option[PulledItem] =
       response.status match {
         case NO_CONTENT => None
         case OK         => Some(response.json.as[PulledItem])
         case unexpectedStatus =>
-          Logger.error(s"Call to $url failed with status $unexpectedStatus")
+          logger.error(s"Call to $url failed with status $unexpectedStatus")
           None
       }
   }
@@ -64,7 +64,7 @@ class PreferencesConnector @Inject()(httpClient: HttpClient, runMode: RunMode, c
       )
       .recover {
         case ex =>
-          Logger
+          logger
             .error(s"Call to $serviceUrl/preferences/updated-print-suppression/pull-work-item failed unexpectedly", ex)
           None
       }
@@ -79,8 +79,8 @@ class PreferencesConnector @Inject()(httpClient: HttpClient, runMode: RunMode, c
 
   lazy val retryFailedUpdatesAfter: Duration = {
     configuration
-      .getOptional[Duration](s"${runMode.env}.updatedPrintSuppressions.retryFailedUpdatesAfter")
-      .getOrElse(throw new IllegalStateException(s"${runMode.env}.updatedPrintSuppressions.retryFailedUpdatesAfter config value not set"))
+      .getOptional[Duration](s"updatedPrintSuppressions.retryFailedUpdatesAfter")
+      .getOrElse(throw new IllegalStateException(s"updatedPrintSuppressions.retryFailedUpdatesAfter config value not set"))
   }
 
   lazy val serviceUrl: String = servicesConfig.baseUrl("preferences")
