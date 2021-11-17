@@ -22,17 +22,14 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
 import org.joda.time.LocalDate
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import org.scalatestplus.play.{ OneServerPerSuite, PlaySpec, PortNumber }
-import play.api.{ Configuration, Mode }
+import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsObject, JsValue }
-import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.mongo.MongoSpecSupport
 import play.api.test.Helpers._
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
 import reactivemongo.play.json.ImplicitBSONHandlers._
+import reactivemongo.play.json.collection.JSONCollection
 import uk.gov.hmrc.integration.ServiceSpec
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+import uk.gov.hmrc.mongo.MongoSpecSupport
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -43,11 +40,10 @@ abstract class UpdatedPrintSuppressionTestServer(override val databaseName: Stri
   lazy val upsCollection = mongo().collection[JSONCollection](
     UpdatedPrintSuppressions.repoNameTemplate(LocalDate.now)
   )
-
-  private val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
-
   lazy val stubPort = 11111
   lazy val stubHost = "localhost"
+  val wireMockServer: WireMockServer = new WireMockServer(wireMockConfig().port(stubPort))
+  private val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
 
   override def additionalConfig: Map[String, _] =
     Map[String, Any](
@@ -60,8 +56,6 @@ abstract class UpdatedPrintSuppressionTestServer(override val databaseName: Stri
       "scheduling.updatedPrintSuppressions.initialDelay" -> "10 hours",
       "mongodb.uri"                                      -> s"mongodb://localhost:27017/$databaseName"
     )
-
-  val wireMockServer: WireMockServer = new WireMockServer(wireMockConfig().port(stubPort))
 
   override def beforeAll(): Unit = {
     wireMockServer.start()
