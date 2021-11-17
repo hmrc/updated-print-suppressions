@@ -23,7 +23,7 @@ import org.joda.time.LocalDate
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import org.scalatestplus.play.{ OneServerPerSuite, PlaySpec }
+import org.scalatestplus.play.{ OneServerPerSuite, PlaySpec, PortNumber }
 import play.api.{ Configuration, Mode }
 import play.api.libs.json.{ JsObject, JsValue }
 import reactivemongo.play.json.collection.JSONCollection
@@ -45,8 +45,6 @@ abstract class UpdatedPrintSuppressionTestServer(override val databaseName: Stri
   )
 
   private val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
-
-  override lazy val port = 9000
 
   lazy val stubPort = 11111
   lazy val stubHost = "localhost"

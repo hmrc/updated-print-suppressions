@@ -22,26 +22,30 @@ object AppDependencies {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc"       %% "bootstrap-backend-play-27" % "4.3.0",
-    "uk.gov.hmrc"       %% "auth-client"              % "5.6.0-play-27",
-    "uk.gov.hmrc"       %% "simple-reactivemongo"     % "8.0.0-play-27",
-    "uk.gov.hmrc"       %% "play-scheduling-play-27"  % "7.10.0",
-    "uk.gov.hmrc"       %% "domain"                   % "6.2.0-play-27",
-    "uk.gov.hmrc"       %% "work-item-repo"           % "8.1.0-play-27",
-    "net.codingwell"    %% "scala-guice"              % "4.2.6",
-    "com.typesafe.play" %% "play-json-joda"           % "2.6.14"
+    "uk.gov.hmrc"       %% "bootstrap-backend-play-28" % "5.16.0",
+    "uk.gov.hmrc"       %% "auth-client"               % "5.7.0-play-28",
+    "uk.gov.hmrc"       %% "simple-reactivemongo"      % "8.0.0-play-28",
+    "uk.gov.hmrc"       %% "play-scheduling-play-27"   % "7.10.0",
+    "uk.gov.hmrc"       %% "domain"                    % "6.2.0-play-28",
+    "uk.gov.hmrc"       %% "work-item-repo"            % "8.1.0-play-28",
+    "net.codingwell"    %% "scala-guice"               % "5.0.2",
+    "com.typesafe.play" %% "play-json-joda"            % "2.9.2"
   )
 
   val test = Set(
-    "uk.gov.hmrc"            %% "reactivemongo-test"       % "5.0.0-play-27"    % "test,it",
-    "org.mockito"            % "mockito-all"               % "1.9.5"             % "test,it",
-    "com.github.tomakehurst" % "wiremock-jre8"             % "2.25.1"            % "test,it",
-    "org.scalatest"          %% "scalatest"                % "3.0.8"             % "test,it",
-    "org.pegdown"            % "pegdown"                   % "1.6.0"             % "test,it",
-    "org.scalatestplus.play" %% "scalatestplus-play"       % "3.1.3"             % "test,it",
-    "uk.gov.hmrc"            %% "service-integration-test" % "0.13.0-play-27"    % "test,it",
-    "com.typesafe.play"      %% "play-test"                % PlayVersion.current % "test,it",
-    "org.skyscreamer"        % "jsonassert"                % "1.5.0"             % "it"
+    "uk.gov.hmrc"                  %% "reactivemongo-test"       % "5.0.0-play-28"     % "test,it",
+    "com.github.tomakehurst"       % "wiremock-jre8"             % "2.31.0"            % "test,it",
+    "org.mockito"                  % "mockito-core"              % "3.9.0"             % "test, it",
+    "org.scalatestplus"            %% "mockito-3-4"              % "3.2.8.0"           % "test, it",
+    "org.scalatest"                %% "scalatest"                % "3.2.5"             % "test,it",
+    "org.pegdown"                  % "pegdown"                   % "1.6.0"             % "test,it",
+    "org.scalatestplus.play"       %% "scalatestplus-play"       % "5.1.0"             % "test,it",
+    "uk.gov.hmrc"                  %% "service-integration-test" % "1.2.0-play-28"     % "test,it",
+    "com.typesafe.play"            %% "play-test"                % PlayVersion.current % "test,it",
+    "com.vladsch.flexmark"         % "flexmark-all"              % "0.36.8"            % "test, it",
+    "com.fasterxml.jackson.module" %% "jackson-module-scala"     % "2.12.5"            % "test, it",
+    "com.typesafe.play"            %% "play-akka-http-server"    % "2.8.7"             % "test, it",
+    "org.skyscreamer"              % "jsonassert"                % "1.5.0"             % "it"
   )
 
   val overrides = Set()
