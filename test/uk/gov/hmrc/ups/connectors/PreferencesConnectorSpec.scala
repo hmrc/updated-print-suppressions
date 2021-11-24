@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.ups.connectors
 
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -28,9 +28,8 @@ import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsValue
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpClient }
 import uk.gov.hmrc.mongo.MongoSpecSupport
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.model.{ EntityId, PulledItem, WorkItemRequest }
 import uk.gov.hmrc.ups.utils.Generate
@@ -71,7 +70,6 @@ class PreferencesConnectorSpec extends PlaySpec with ScalaFutures with MockitoSu
     }
 
     "return none on an unexpected response from preferences" in new TestCase {
-      val expectedStatus: Int = Status.NOT_FOUND
       when(mockHttpClient.POST[WorkItemRequest, Option[PulledItem]](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(None))
 

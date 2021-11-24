@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.ups.connectors
 
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
@@ -29,8 +29,7 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import uk.gov.hmrc.domain.{ Nino, SaUtr }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpClient, HttpResponse }
 import uk.gov.hmrc.ups.model.{ Entity, EntityId }
 import uk.gov.hmrc.ups.utils.Generate
 

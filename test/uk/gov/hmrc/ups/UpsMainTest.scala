@@ -18,11 +18,11 @@ package uk.gov.hmrc.ups
 
 import com.google.inject.AbstractModule
 import net.codingwell.scalaguice.ScalaModule
-import org.mockito.Matchers.any
-import org.mockito.Mockito.{ times, verify, when }
+import org.mockito.ArgumentMatchers._
+import org.mockito.Mockito._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.mockito._
 import org.scalatest.time.{ Millis, Seconds, Span }
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application

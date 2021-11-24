@@ -37,7 +37,7 @@ trait SelectAndRemove {
   def compose(listCollections: () => Future[List[String]], expireCollection: String => Future[Unit], filter: String => Boolean)(
     implicit ec: ExecutionContext): Future[Totals] =
     listCollections().flatMap { names =>
-      Future.fold(
+      Future.foldLeft(
         names.filter(filter).map { name =>
           expireCollection(name).map(_ => Succeeded(name)).recover { case ex => Failed(name, Some(ex)) }
         }

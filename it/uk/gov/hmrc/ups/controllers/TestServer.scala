@@ -17,7 +17,8 @@
 package uk.gov.hmrc.ups.controllers
 
 import com.codahale.metrics.SharedMetricRegistries
-import org.scalatest.{ BeforeAndAfterEach, WordSpec }
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.WsScalaTestClient
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
@@ -26,7 +27,7 @@ import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.integration.ServiceSpec
 import uk.gov.hmrc.ups.repository.MongoCounterRepository
 
-trait TestServer extends WordSpec with ServiceSpec with WsScalaTestClient with BeforeAndAfterEach with MongoSupport {
+trait TestServer extends AnyWordSpec with ServiceSpec with WsScalaTestClient with BeforeAndAfterEach with MongoSupport {
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
