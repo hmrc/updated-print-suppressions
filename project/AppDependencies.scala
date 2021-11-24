@@ -25,7 +25,7 @@ object AppDependencies {
     "uk.gov.hmrc"       %% "bootstrap-backend-play-28" % "5.16.0",
     "uk.gov.hmrc"       %% "auth-client"               % "5.7.0-play-28",
     "uk.gov.hmrc"       %% "simple-reactivemongo"      % "8.0.0-play-28",
-    "uk.gov.hmrc"       %% "play-scheduling-play-27"   % "7.10.0",
+    "uk.gov.hmrc"       %% "play-scheduling-play-28"   % "8.0.0",
     "uk.gov.hmrc"       %% "domain"                    % "6.2.0-play-28",
     "uk.gov.hmrc"       %% "work-item-repo"            % "8.1.0-play-28",
     "net.codingwell"    %% "scala-guice"               % "5.0.2",
