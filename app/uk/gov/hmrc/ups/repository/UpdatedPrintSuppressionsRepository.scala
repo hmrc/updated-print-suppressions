@@ -48,7 +48,8 @@ object UpdatedPrintSuppressions {
   def repoNameTemplate(date: LocalDate): String = s"updated_print_suppressions_${toString(date)}"
 }
 
-class UpdatedPrintSuppressionsRepository(mongoComponent: MongoComponent, date: LocalDate, counterRepo: MongoCounterRepository)(implicit ec: ExecutionContext)
+class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponent, date: LocalDate, counterRepo: MongoCounterRepository)(
+  implicit ec: ExecutionContext)
     extends PlayMongoRepository[UpdatedPrintSuppressions](
       mongoComponent,
       UpdatedPrintSuppressions.repoNameTemplate(date),
