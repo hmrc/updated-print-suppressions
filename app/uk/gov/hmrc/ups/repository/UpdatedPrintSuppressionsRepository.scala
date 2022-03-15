@@ -22,13 +22,13 @@ import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model._
 import play.api.Logger
 import play.api.libs.json.{ Format, Json, OFormat }
-import reactivemongo.api.ReadConcern
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
 import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
 import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
 import uk.gov.hmrc.ups.model.PrintPreference
 
+import javax.inject.Inject
 import scala.collection.Seq
 import scala.concurrent.{ ExecutionContext, Future }
 
