@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,61 +16,40 @@
 
 package uk.gov.hmrc.ups.controllers.admin
 
-import javax.inject.{ Inject, Singleton }
-import org.joda.time.LocalDate
-import org.joda.time.format.DateTimeFormatter
 import play.api.libs.json.{ JsValue, OFormat }
 import play.api.mvc.{ Action, AnyContent, ControllerComponents, QueryStringBindable }
-import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.bootstrap.controller.{ BackendController, WithJsonBody }
-import uk.gov.hmrc.time.DateTimeUtils
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.controller.WithJsonBody
+import uk.gov.hmrc.ups.controllers.UpdatedOn
 import uk.gov.hmrc.ups.controllers.bind.PastLocalDateBindable
-import uk.gov.hmrc.ups.controllers.{ UpdatedOn, UpdatedPrintSuppressionsController }
 import uk.gov.hmrc.ups.model.{ Limit, PastLocalDate, PrintPreference }
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 
+import javax.inject.{ Inject, Singleton }
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class AdminController @Inject()(
-  mongoComponent: ReactiveMongoComponent,
-  mongoCounterRepository: MongoCounterRepository,
-  cc: ControllerComponents,
-  preferencesProcessor: PreferencesProcessor,
-  upsController: UpdatedPrintSuppressionsController)(implicit ec: ExecutionContext)
-    extends BackendController(cc) with WithJsonBody with UpdatedOn {
+class AdminController @Inject()(updatedOn: UpdatedOn, cc: ControllerComponents, preferencesProcessor: PreferencesProcessor)(implicit ec: ExecutionContext)
+    extends BackendController(cc) with WithJsonBody {
 
-  override val reactiveMongoComponent: ReactiveMongoComponent = mongoComponent
-  override val counterRepository: MongoCounterRepository = mongoCounterRepository
-  override val executionContext: ExecutionContext = ec
-  override val localDateBinder: QueryStringBindable[PastLocalDate] = PastLocalDateBindable(false)
+  val localDateBinder: QueryStringBindable[PastLocalDate] = PastLocalDateBindable(false)
 
   implicit val ppf: OFormat[PrintPreference] = PrintPreference.formats
 
-  val dtf: DateTimeFormatter = org.joda.time.format.DateTimeFormat.forPattern("yyyy-MM-dd")
-
   def list(optOffset: Option[Int], optLimit: Option[Limit]): Action[AnyContent] =
     Action.async { implicit request =>
-      processUpdatedOn(
+      updatedOn.processUpdatedOn(
         optOffset,
         optLimit,
-        localDateBinder.bind("updated-on", request.queryString)
+        localDateBinder.bind("updated-on", request.queryString),
+        localDateBinder
       )
     }
 
   def insert(date: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[PrintPreference] { body =>
-      new UpdatedPrintSuppressionsRepository(
-        mongoComponent,
-        LocalDate.parse(date, dtf),
-        mongoCounterRepository
-      ).insert(body, DateTimeUtils.now)
-        .map { _ =>
-          Ok("Record inserted")
-        }
-        .recover { case _ => InternalServerError("Failed to insert the record") }
+      updatedOn.insert(date, body)
     }
   }
 
@@ -81,5 +60,4 @@ class AdminController @Inject()(
       )
     }
   }
-
 }

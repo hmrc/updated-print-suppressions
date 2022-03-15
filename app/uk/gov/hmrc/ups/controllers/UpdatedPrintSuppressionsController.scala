@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,27 @@
 
 package uk.gov.hmrc.ups.controllers
 
-import javax.inject.{ Inject, Singleton }
 import play.api.mvc._
-import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.ups.controllers.bind.PastLocalDateBindable
 import uk.gov.hmrc.ups.model.{ Limit, PastLocalDate }
-import uk.gov.hmrc.ups.repository.MongoCounterRepository
 
+import javax.inject.{ Inject, Singleton }
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class UpdatedPrintSuppressionsController @Inject()(
-  mongoComponent: ReactiveMongoComponent,
-  mongoCounterRepository: MongoCounterRepository,
-  cc: ControllerComponents)(implicit ec: ExecutionContext)
-    extends BackendController(cc) with UpdatedOn {
+class UpdatedPrintSuppressionsController @Inject()(updatedOn: UpdatedOn, cc: ControllerComponents)(implicit ec: ExecutionContext)
+    extends BackendController(cc) {
 
-  lazy override val reactiveMongoComponent: ReactiveMongoComponent = mongoComponent
-  lazy override val counterRepository: MongoCounterRepository = mongoCounterRepository
-  lazy override implicit val executionContext: ExecutionContext = ec
-  override val localDateBinder: QueryStringBindable[PastLocalDate] = PastLocalDateBindable(true)
+  val localDateBinder: QueryStringBindable[PastLocalDate] = PastLocalDateBindable(true)
 
   def list(optOffset: Option[Int], optLimit: Option[Limit]): Action[AnyContent] =
     Action.async { implicit request =>
-      processUpdatedOn(
+      updatedOn.processUpdatedOn(
         optOffset,
         optLimit,
-        localDateBinder.bind("updated-on", request.queryString)
+        localDateBinder.bind("updated-on", request.queryString),
+        localDateBinder
       )
     }
-
 }

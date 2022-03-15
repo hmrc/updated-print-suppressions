@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,14 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.JsValue
 import uk.gov.hmrc.http.{ HeaderCarrier, HttpClient }
-import uk.gov.hmrc.mongo.MongoSpecSupport
+import uk.gov.hmrc.mongo.workitem.ProcessingStatus
 import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.model.{ EntityId, PulledItem, WorkItemRequest }
 import uk.gov.hmrc.ups.utils.Generate
-import uk.gov.hmrc.workitem.Succeeded
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class PreferencesConnectorSpec extends PlaySpec with ScalaFutures with MockitoSugar with GuiceOneAppPerSuite with MongoSpecSupport with BeforeAndAfterEach {
+class PreferencesConnectorSpec extends PlaySpec with ScalaFutures with MockitoSugar with GuiceOneAppPerSuite with BeforeAndAfterEach {
 
   val mockHttpClient: HttpClient = mock[HttpClient]
 
@@ -51,7 +50,7 @@ class PreferencesConnectorSpec extends PlaySpec with ScalaFutures with MockitoSu
 
   "pull next work item from preferences" should {
     "return the next work item that was at todo status" in new TestCase {
-      val pulledItem = PulledItem(randomEntityId, paperless = true, DateTimeUtils.now, "someUrl")
+      val pulledItem: PulledItem = PulledItem(randomEntityId, paperless = true, DateTimeUtils.now, "someUrl")
       when(mockHttpClient.POST[WorkItemRequest, Option[PulledItem]](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(Some(pulledItem)))
 
@@ -86,7 +85,7 @@ class PreferencesConnectorSpec extends PlaySpec with ScalaFutures with MockitoSu
       when(mockHttpClient.POST[JsValue, Int](any(), any(), any())(any(), any(), any(), any()))
         .thenReturn(Future.successful(Status.OK))
 
-      connector.changeStatus(callbackUrl, Succeeded).futureValue must be(Status.OK)
+      connector.changeStatus(callbackUrl, ProcessingStatus.Succeeded).futureValue must be(Status.OK)
 
       //verify(mockHttpClient).POST(any(),any(),any())
     }

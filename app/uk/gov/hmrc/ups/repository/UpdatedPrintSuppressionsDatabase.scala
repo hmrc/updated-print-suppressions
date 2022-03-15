@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,20 @@
 
 package uk.gov.hmrc.ups.repository
 
-import javax.inject.{ Inject, Singleton }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.collections.bson.BSONCollection
+import uk.gov.hmrc.mongo.MongoComponent
 
+import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class UpdatedPrintSuppressionsDatabase @Inject()(mongoComponent: ReactiveMongoComponent) {
+class UpdatedPrintSuppressionsDatabase @Inject()(mongoComponent: MongoComponent) {
 
   def dropCollection(collectionName: String)(implicit ec: ExecutionContext): Future[Unit] =
-    mongoComponent.mongoConnector.db().collection[BSONCollection](collectionName).drop
+    mongoComponent.database.getCollection(collectionName).drop().toFuture().map(_ => ())
 
   private def listCollectionNames(predicate: String => Boolean)(implicit ec: ExecutionContext): Future[List[String]] =
-    mongoComponent.mongoConnector.db().collectionNames.map(_.filter(predicate))
+    mongoComponent.database.listCollectionNames().toFuture().map(_.filter(predicate).toList)
 
   def upsCollectionNames(implicit ec: ExecutionContext): Future[List[String]] =
     listCollectionNames(_.startsWith("updated"))
-
 }

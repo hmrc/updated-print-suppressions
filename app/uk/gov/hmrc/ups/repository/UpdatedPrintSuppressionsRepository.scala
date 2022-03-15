@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,26 +17,25 @@
 package uk.gov.hmrc.ups.repository
 
 import org.joda.time.{ DateTime, LocalDate }
+import org.mongodb.scala.MongoWriteException
+import org.mongodb.scala.bson.ObjectId
+import org.mongodb.scala.model._
 import play.api.Logger
 import play.api.libs.json.{ Format, Json, OFormat }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.Cursor.FailOnError
-import reactivemongo.api.ReadPreference
-import reactivemongo.api.commands.CommandError
-import reactivemongo.api.indexes.{ Index, IndexType }
-import reactivemongo.bson.{ BSONDocument, BSONObjectID }
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import reactivemongo.play.json.collection.JSONCollection
-import uk.gov.hmrc.mongo.ReactiveRepository
+import reactivemongo.api.ReadConcern
+import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
+import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
+import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
 import uk.gov.hmrc.ups.model.PrintPreference
 
+import scala.collection.Seq
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class UpdatedPrintSuppressions(_id: BSONObjectID, counter: Int, printPreference: PrintPreference, updatedAt: DateTime)
+case class UpdatedPrintSuppressions(_id: ObjectId, counter: Int, printPreference: PrintPreference, updatedAt: DateTime)
 
 object UpdatedPrintSuppressions {
-  implicit val idf: Format[BSONObjectID] = ReactiveMongoFormats.objectIdFormats
+  implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
   implicit val pp: OFormat[PrintPreference] = PrintPreference.formats
   implicit val dtf: Format[DateTime] = ReactiveMongoFormats.dateTimeFormats
 
@@ -49,105 +48,97 @@ object UpdatedPrintSuppressions {
   def repoNameTemplate(date: LocalDate): String = s"updated_print_suppressions_${toString(date)}"
 }
 
-class UpdatedPrintSuppressionsRepository(
-  mongoComponent: ReactiveMongoComponent,
-  date: LocalDate,
-  counterRepo: MongoCounterRepository,
-  mc: Option[JSONCollection] = None)(implicit ec: ExecutionContext)
-    extends ReactiveRepository[UpdatedPrintSuppressions, BSONObjectID](
+class UpdatedPrintSuppressionsRepository(mongoComponent: MongoComponent, date: LocalDate, counterRepo: MongoCounterRepository)(implicit ec: ExecutionContext)
+    extends PlayMongoRepository[UpdatedPrintSuppressions](
+      mongoComponent,
       UpdatedPrintSuppressions.repoNameTemplate(date),
-      mongoComponent.mongoConnector.db,
-      UpdatedPrintSuppressions.formats) {
+      UpdatedPrintSuppressions.formats,
+      Seq(
+        IndexModel(
+          Indexes.ascending("counter"),
+          IndexOptions()
+            .name("counterIdx")
+            .unique(true)
+            .sparse(false)),
+        IndexModel(
+          Indexes.ascending("printPreference.id", "printPreference.idType"),
+          IndexOptions()
+            .name("uniquePreferenceId")
+            .unique(true)
+            .sparse(false)),
+      ),
+      replaceIndexes = false
+    ) {
 
-  logger.error(s"Connection URI: ${mongoComponent.mongoConnector.mongoConnectionUri}")
-
+  private val logger = Logger(getClass.getName)
   private val counterRepoDate = UpdatedPrintSuppressions.toString(date)
 
-  override def indexes: Seq[Index] =
-    Seq(
-      Index(Seq("counter" -> IndexType.Ascending), name = Some("counterIdx"), unique = true, sparse = false),
-      Index(
-        Seq("printPreference.id" -> IndexType.Ascending, "printPreference.idType" -> IndexType.Ascending),
-        name = Some("uniquePreferenceId"),
-        unique = true,
-        sparse = false)
-    )
-
   def find(offset: Long, limit: Int): Future[List[PrintPreference]] = {
-
-    import play.api.libs.json.Json._
-
-    val from = offset
-    val to = offset + limit
-    val query = Json.obj("counter" -> Json.obj("$gte" -> from, "$lt" -> to))
-    val e: Future[List[UpdatedPrintSuppressions]] = collection
-      .find(query)
-      .cursor[UpdatedPrintSuppressions](ReadPreference.primaryPreferred)
-      .collect[List](maxDocs = -1, FailOnError[List[UpdatedPrintSuppressions]]())
-    e.map(_.map(ups => ups.printPreference))
+    val query = Filters.and(Filters.gte("counter", offset), Filters.lt("counter", offset + limit))
+    val e: Future[Seq[UpdatedPrintSuppressions]] = collection.find(query).toFuture()
+    e.map(_.map(ups => ups.printPreference).toList)
   }
 
-  def insert(printPreference: PrintPreference, updatedAt: DateTime)(implicit ec: ExecutionContext): Future[Unit] = {
-    val selector =
-      BSONDocument("printPreference.id" -> printPreference.id, "printPreference.idType" -> printPreference.idType)
-    val updatedAtJson = ReactiveMongoFormats.dateTimeWrite.writes(updatedAt)
-    val updatedAtSelector = BSONDocument("updatedAt" -> Json.obj("$lte" -> updatedAtJson))
+  def insert(printPreference: PrintPreference, updatedAt: DateTime): Future[Unit] = {
+    val selector = Filters.and(
+      Filters.equal("printPreference.id", printPreference.id),
+      Filters.equal("printPreference.idType", printPreference.idType)
+    )
+    val updatedAtJson = ReactiveMongoFormats.dateTimeWrite.writes(updatedAt) //ToDo check format
+    val updatedAtSelector = Filters.lte("updatedAt", Codecs.toBson(updatedAtJson))
 
-    collection.find(selector).one[UpdatedPrintSuppressions].flatMap {
-      case Some(ups) =>
-        collection
-          .update(
-            selector = BSONDocument("_id" -> ups._id) ++ updatedAtSelector,
-            update = UpdatedPrintSuppressions.formats.writes(
-              ups.copy(printPreference = printPreference, updatedAt = updatedAt)
+    collection
+      .find(selector)
+      .first()
+      .toFuture()
+      .map(Option(_) match {
+        case Some(ups: UpdatedPrintSuppressions) =>
+          collection
+            .updateOne(
+              Filters.and(Filters.equal("_id", ups._id), updatedAtSelector),
+              Seq(Updates.set("printPreference", printPreference), Updates.set("updatedAt", updatedAt))
             )
-          )
-          .map { _ =>
-            ()
-          }
-
-      case None =>
-        counterRepo
-          .next(counterRepoDate)
-          .flatMap { counter =>
-            collection.findAndUpdate(
-              selector = selector ++ updatedAtSelector,
-              update = BSONDocument(
-                "$setOnInsert" -> Json.obj(
-                  "_id"     -> BSONObjectIDFormat.writes(BSONObjectID.generate),
-                  "counter" -> counter
-                ),
-                "$set" -> Json.obj(
-                  "updatedAt"       -> updatedAtJson,
-                  "printPreference" -> Json.toJson(printPreference)
+            .toFuture()
+        case None =>
+          counterRepo
+            .next(counterRepoDate)
+            .flatMap { counter =>
+              collection
+                .findOneAndUpdate(
+                  Filters.and(selector, updatedAtSelector),
+                  Seq(
+                    Updates.setOnInsert("_id", new ObjectId()),
+                    Updates.setOnInsert("counter", counter),
+                    Updates.set("updatedAt", updatedAtJson),
+                    Updates.set("printPreference", printPreference)
+                  ),
+                  FindOneAndUpdateOptions().upsert(true),
                 )
-              ),
-              upsert = true,
-              fetchNewObject = false
-            )
-          }
-          .map { _ =>
-            ()
-          }
-          .recover {
-            case e: CommandError if e.getMessage.contains("11000") =>
-              logger.warn(s"failed to insert print preference $printPreference updated at ${updatedAt.getMillis}", e)
-              ()
-          }
-    }
-
+                .toFuture()
+            }
+            .recover {
+              case e: MongoWriteException if e.getError.getCode == 11000 =>
+                logger.warn(s"failed to insert print preference $printPreference updated at ${updatedAt.getMillis}", e)
+                ()
+            }
+      })
+      .map { _ =>
+        ()
+      }
   }
+
+  def count(): Future[Long] = collection.countDocuments().toFuture()
 }
 
-case class Counter(_id: BSONObjectID, name: String, value: Int)
+case class Counter(_id: ObjectId, name: String, value: Int)
 
 object Counter {
   val formats: OFormat[Counter] = {
-    implicit val idf: Format[BSONObjectID] = ReactiveMongoFormats.objectIdFormats
+    implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
     Json.format[Counter]
   }
 }
 
 trait CounterRepository {
-  def next(counterName: String)(implicit ec: ExecutionContext): Future[Int]
+  def next(counterName: String)(implicit ec: ExecutionContext): Future[Long]
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,14 +24,14 @@ import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerTest
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.play.scheduling.ScheduledJob
 
 import scala.concurrent.duration._
 
-class UpsMainTest extends PlaySpec with GuiceOneAppPerTest with MockitoSugar with Eventually {
+class UpsMainTest extends PlaySpec with GuiceOneAppPerSuite with MockitoSugar with Eventually {
 
   override implicit val patienceConfig: PatienceConfig =
     PatienceConfig(timeout = scaled(Span(10, Seconds)), interval = scaled(Span(5, Millis)))

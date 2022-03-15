@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,23 +17,24 @@
 package uk.gov.hmrc.ups.repository
 
 import org.joda.time.LocalDate
+import org.mongodb.scala.bson.ObjectId
+import org.mongodb.scala.model.Filters
 import org.scalatest.DoNotDiscover
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import reactivemongo.bson.BSONObjectID
-import uk.gov.hmrc.mongo.MongoSpecSupport
+import play.api.test.Helpers._
+import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.model.PrintPreference
-import play.api.test.Helpers._
-import play.modules.reactivemongo.ReactiveMongoComponent
 
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
+import scala.concurrent.ExecutionContext
 
 @DoNotDiscover
-class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with MongoSpecSupport {
+class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions] {
 
   val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
-  val mongoComponent = app.injector.instanceOf[ReactiveMongoComponent]
+  val repository: UpdatedPrintSuppressionsRepository =
+    new UpdatedPrintSuppressionsRepository(mongoComponent, new LocalDate().minusDays(1), mongoCounterRepository)
 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
@@ -41,14 +42,12 @@ class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with MongoSp
 
   "RandomDataGenerator" should {
 
-    "create 3M random records in one day" in new TestSetup {
-      val repository: UpdatedPrintSuppressionsRepository =
-        new UpdatedPrintSuppressionsRepository(mongoComponent, new LocalDate().minusDays(1), mongoCounterRepository)
-      await(repository.removeAll())
+    "create 3M random records in one day" in {
+      await(repository.collection.deleteMany(Filters.empty()).toFuture().map(_ => ()))
       0 to 29 foreach { i =>
         {
           println(s"Generating records from ${i * BATCH_SIZE} to ${(i * BATCH_SIZE) + BATCH_SIZE}")
-          await(repository.bulkInsert(generateBATCH_SIZEEntries(i * BATCH_SIZE)))
+          await(repository.collection.insertMany(generateBATCH_SIZEEntries(i * BATCH_SIZE)).toFuture())
         }
       }
     }
@@ -57,14 +56,11 @@ class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with MongoSp
       for (n <- List.range(offset, offset + BATCH_SIZE))
         yield
           UpdatedPrintSuppressions(
-            BSONObjectID.generate,
+            new ObjectId(),
             n,
             PrintPreference(s"anId_$n", "anId", List("f1", "f2")),
             DateTimeUtils.now
           )
 
   }
-
-  class TestSetup(override val databaseName: String = "updated-print-suppressions") extends MongoSpecSupport
-
 }

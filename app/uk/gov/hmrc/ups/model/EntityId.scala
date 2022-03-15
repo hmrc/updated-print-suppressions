@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,9 @@
 package uk.gov.hmrc.ups.model
 
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
 
 case class EntityId(value: String) {
-  override def toString = value
+  override def toString: String = value
 }
 
 object EntityId {
