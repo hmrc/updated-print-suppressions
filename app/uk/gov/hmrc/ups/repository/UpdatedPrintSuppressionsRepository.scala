@@ -23,10 +23,10 @@ import org.mongodb.scala.model._
 import play.api.Logger
 import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.json.ReactiveMongoFormats
-import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
+import uk.gov.hmrc.mongo.play.json.formats.{ MongoFormats, MongoJodaFormats }
 import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
 import uk.gov.hmrc.ups.model.PrintPreference
+import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.updatedAtAsJson
 
 import javax.inject.Inject
 import scala.collection.Seq
@@ -37,7 +37,7 @@ case class UpdatedPrintSuppressions(_id: ObjectId, counter: Int, printPreference
 object UpdatedPrintSuppressions {
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
   implicit val pp: OFormat[PrintPreference] = PrintPreference.formats
-  implicit val dtf: Format[DateTime] = ReactiveMongoFormats.dateTimeFormats
+  implicit val isoDateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
 
   implicit val formats: OFormat[UpdatedPrintSuppressions] = Json.format[UpdatedPrintSuppressions]
 
@@ -46,6 +46,8 @@ object UpdatedPrintSuppressions {
   def toString(date: LocalDate): String = date.toString(datePattern)
 
   def repoNameTemplate(date: LocalDate): String = s"updated_print_suppressions_${toString(date)}"
+
+  def updatedAtAsJson(updatedAt: DateTime) = Json.toJson(updatedAt)
 }
 
 class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponent, date: LocalDate, counterRepo: MongoCounterRepository)(
@@ -85,19 +87,18 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
       Filters.equal("printPreference.id", printPreference.id),
       Filters.equal("printPreference.idType", printPreference.idType)
     )
-    val updatedAtJson = ReactiveMongoFormats.dateTimeWrite.writes(updatedAt) //ToDo check format
-    val updatedAtSelector = Filters.lte("updatedAt", Codecs.toBson(updatedAtJson))
+    val updatedAtSelector = Filters.lte("updatedAt", Codecs.toBson(updatedAtAsJson(updatedAt)))
 
     collection
-      .find(selector)
+      .find[UpdatedPrintSuppressions](selector)
       .first()
       .toFuture()
       .map(Option(_) match {
-        case Some(ups: UpdatedPrintSuppressions) =>
+        case Some(ups) =>
           collection
             .updateOne(
               Filters.and(Filters.equal("_id", ups._id), updatedAtSelector),
-              Seq(Updates.set("printPreference", printPreference), Updates.set("updatedAt", updatedAt))
+              Seq(Updates.set("printPreference", Codecs.toBson(printPreference)), Updates.set("updatedAt", Codecs.toBson(updatedAtAsJson(updatedAt))))
             )
             .toFuture()
         case None =>
@@ -105,16 +106,7 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
             .next(counterRepoDate)
             .flatMap { counter =>
               collection
-                .findOneAndUpdate(
-                  Filters.and(selector, updatedAtSelector),
-                  Seq(
-                    Updates.setOnInsert("_id", new ObjectId()),
-                    Updates.setOnInsert("counter", counter),
-                    Updates.set("updatedAt", updatedAtJson),
-                    Updates.set("printPreference", printPreference)
-                  ),
-                  FindOneAndUpdateOptions().upsert(true),
-                )
+                .insertOne(UpdatedPrintSuppressions(new ObjectId(), counter, printPreference, updatedAt))
                 .toFuture()
             }
             .recover {
@@ -141,5 +133,5 @@ object Counter {
 }
 
 trait CounterRepository {
-  def next(counterName: String)(implicit ec: ExecutionContext): Future[Long]
+  def next(counterName: String)(implicit ec: ExecutionContext): Future[Int]
 }

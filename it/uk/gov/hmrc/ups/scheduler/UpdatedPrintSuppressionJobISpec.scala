@@ -19,18 +19,16 @@ package uk.gov.hmrc.ups.scheduler
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.stubbing.Scenario
+import org.mongodb.scala.model.Filters
 import play.api.http.Status
-import play.api.libs.json.Json
-import play.api.libs.json.Json._
 import play.api.test.Helpers._
-import reactivemongo.play.json.ImplicitBSONHandlers._
+import uk.gov.hmrc.mongo.workitem.ProcessingStatus
 import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.ispec.UpdatedPrintSuppressionTestServer
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions
 import uk.gov.hmrc.ups.scheduled.jobs.UpdatedPrintSuppressionJob
 import uk.gov.hmrc.ups.utils.Generate
-import uk.gov.hmrc.workitem.{ PermanentlyFailed, Succeeded }
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -44,7 +42,7 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
       val entityId = Generate.entityId
       val utr = Generate.utr
       val updatedAt = DateTimeUtils.now
-      val expectedStatusOnPreference = Succeeded
+      val expectedStatusOnPreference = ProcessingStatus.Succeeded
 
       stubFirstPullUpdatedPrintSuppression(entityId, updatedAt)
       stubGetEntity(entityId, utr)
@@ -53,7 +51,7 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
 
       await(updatedPrintSuppressionJob.executeInLock)
 
-      val ups = await(upsCollection.find(Json.obj("printPreference.id" -> utr.value)).one[UpdatedPrintSuppressions]).get
+      val ups = await(upsCollection.find(Filters.equal("printPreference.id", utr.value)).first().toFuture())
 
       ups mustBe UpdatedPrintSuppressions(ups._id, 1, PrintPreference(utr.value, "utr", List("ABC", "DEF")), updatedAt)
 
@@ -63,7 +61,7 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
       val entityId = Generate.entityId
       val nino = Generate.nino
       val updatedAt = DateTimeUtils.now
-      val expectedStatusOnPreference = Succeeded
+      val expectedStatusOnPreference = ProcessingStatus.Succeeded
 
       stubFirstPullUpdatedPrintSuppression(entityId, updatedAt)
       stubGetEntity(entityId, nino)
@@ -72,13 +70,13 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
 
       await(updatedPrintSuppressionJob.executeInLock)
 
-      await(upsCollection.count()) mustBe 0
+      await(upsCollection.countDocuments().toFuture()) mustBe 0
     }
 
     "process and permanently fail orphan preferences" in {
       val entityId = Generate.entityId
       val updatedAt = DateTimeUtils.now
-      val expectedStatusOnPreference = PermanentlyFailed
+      val expectedStatusOnPreference = ProcessingStatus.PermanentlyFailed
 
       stubFirstPullUpdatedPrintSuppression(entityId, updatedAt)
       stubGetEntityWithStatus(entityId, 404)
@@ -87,7 +85,7 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
 
       await(updatedPrintSuppressionJob.executeInLock)
 
-      await(upsCollection.count()) mustBe 0
+      await(upsCollection.countDocuments().toFuture()) mustBe 0
     }
 
     "terminate in case of errors pulling from preferences" in {
@@ -99,7 +97,7 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
 
       await(updatedPrintSuppressionJob.executeInLock)
 
-      await(upsCollection.count()) mustBe 0
+      await(upsCollection.countDocuments().toFuture()) mustBe 0
     }
 
     "terminate gracefully when an illegal state propagates from pulling preferences" in {
@@ -112,7 +110,7 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
 
       await(updatedPrintSuppressionJob.executeInLock)
 
-      await(upsCollection.count()) mustBe 0
+      await(upsCollection.countDocuments().toFuture()) mustBe 0
     }
 
     "terminate gracefully when an illegal state propagates from calling the entity resolver" in {
@@ -124,14 +122,14 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
 
       await(updatedPrintSuppressionJob.executeInLock)
 
-      await(upsCollection.count()) mustBe 0
+      await(upsCollection.countDocuments().toFuture()) mustBe 0
     }
 
     "continue in case of errors setting the state on preferences" in {
       val entityId = Generate.entityId
       val utr = Generate.utr
       val updatedAt = DateTimeUtils.now
-      val expectedStatusOnPreference = Succeeded
+      val expectedStatusOnPreference = ProcessingStatus.Succeeded
 
       stubFirstPullUpdatedPrintSuppression(entityId, updatedAt)
       stubGetEntity(entityId, utr)
@@ -140,12 +138,8 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
 
       await(updatedPrintSuppressionJob.executeInLock)
 
-      await(upsCollection.count()) mustBe 1
+      await(upsCollection.countDocuments().toFuture()) mustBe 1
     }
   }
-
-//  override def externalServices: Seq[String] = Seq(
-//    "preferences"
-//  )
   override def externalServices: Seq[String] = Seq()
 }

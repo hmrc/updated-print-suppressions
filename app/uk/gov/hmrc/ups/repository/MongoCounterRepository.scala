@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ups.repository
 
+import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -40,11 +41,15 @@ class MongoCounterRepository @Inject()(mongo: MongoComponent)(implicit ec: Execu
       replaceIndexes = false
     ) with CounterRepository {
 
-  def next(counterName: String)(implicit ec: ExecutionContext): Future[Long] = {
+  def next(counterName: String)(implicit ec: ExecutionContext): Future[Int] = {
     val query = Filters.equal("name", counterName)
     collection
-      .updateOne(query, Seq(Updates.setOnInsert("name", counterName), Updates.inc("value", 1)), UpdateOptions().upsert(true))
+      .findOneAndUpdate(
+        query,
+        Updates.inc("value", 1),
+        FindOneAndUpdateOptions().upsert(true).returnDocument(ReturnDocument.AFTER)
+      )
       .toFuture()
-      .map(_.getModifiedCount)
+      .map(_.value)
   }
 }

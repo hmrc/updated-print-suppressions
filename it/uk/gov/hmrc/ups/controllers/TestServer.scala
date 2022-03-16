@@ -23,8 +23,8 @@ import org.scalatestplus.play.WsScalaTestClient
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.ws.{ WSClient, WSRequest }
-import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.integration.ServiceSpec
+import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.repository.MongoCounterRepository
 
 trait TestServer extends AnyWordSpec with ServiceSpec with WsScalaTestClient with BeforeAndAfterEach with MongoSupport {
@@ -32,7 +32,6 @@ trait TestServer extends AnyWordSpec with ServiceSpec with WsScalaTestClient wit
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
       .configure(s"mongodb.uri" -> s"mongodb://localhost:27017/$databaseName", "play.http.router" -> "testOnlyDoNotUseInAppConf.Routes", "metrics.jvm" -> false)
-      .overrides(play.api.inject.bind[ReactiveMongoComponent].to(testMongoComponent))
       .build()
 
   implicit val wsClient: WSClient = app.injector.instanceOf[WSClient]
@@ -62,5 +61,4 @@ trait TestServer extends AnyWordSpec with ServiceSpec with WsScalaTestClient wit
   override def externalServices: Seq[String] = Seq(
     "preferences"
   )
-
 }

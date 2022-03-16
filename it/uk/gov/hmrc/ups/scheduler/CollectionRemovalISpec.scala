@@ -23,11 +23,10 @@ import org.scalatestplus.play.PlaySpec
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.integration.ServiceSpec
+import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob
 // DO NOT DELETE reactivemongo.play.json.ImplicitBSONHandlers._ even if your IDE tells you it is unnecessary
 import play.api.test.Helpers._
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import uk.gov.hmrc.mongo.MongoSpecSupport
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions
 
@@ -35,7 +34,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class CollectionRemovalISpec
-    extends PlaySpec with ServiceSpec with ScalaFutures with MongoSpecSupport with IntegrationPatience with Eventually with BeforeAndAfterEach {
+    extends PlaySpec with ServiceSpec with ScalaFutures with MongoSupport with IntegrationPatience with Eventually with BeforeAndAfterEach {
 
   private val expirationPeriod = 3
 
@@ -53,7 +52,7 @@ class CollectionRemovalISpec
 
   override def beforeEach(): Unit = {
     super.beforeEach()
-    await(mongo().drop())
+    dropDatabase()
   }
 
   "removeOlderThan" should {
@@ -61,7 +60,7 @@ class CollectionRemovalISpec
       await {
         Future.sequence(
           (0 to 4).toList.map { days =>
-            bsonCollection(repoName(days))().insert(false).one(PrintPreference.formats.writes(pref))
+            mongoComponent.database.createCollection(repoName(days)).toFuture()
           }
         )
       }
