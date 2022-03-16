@@ -21,35 +21,16 @@ import org.mongodb.scala.MongoWriteException
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model._
 import play.api.Logger
-import play.api.libs.json.{ Format, Json, OFormat }
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.formats.{ MongoFormats, MongoJodaFormats }
 import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.updatedAtAsJson
 
-import javax.inject.Inject
+import javax.inject.{ Inject, Singleton }
 import scala.collection.Seq
 import scala.concurrent.{ ExecutionContext, Future }
 
-case class UpdatedPrintSuppressions(_id: ObjectId, counter: Int, printPreference: PrintPreference, updatedAt: DateTime)
-
-object UpdatedPrintSuppressions {
-  implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
-  implicit val pp: OFormat[PrintPreference] = PrintPreference.formats
-  implicit val isoDateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
-
-  implicit val formats: OFormat[UpdatedPrintSuppressions] = Json.format[UpdatedPrintSuppressions]
-
-  val datePattern = "yyyyMMdd"
-
-  def toString(date: LocalDate): String = date.toString(datePattern)
-
-  def repoNameTemplate(date: LocalDate): String = s"updated_print_suppressions_${toString(date)}"
-
-  def updatedAtAsJson(updatedAt: DateTime) = Json.toJson(updatedAt)
-}
-
+@Singleton
 class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponent, date: LocalDate, counterRepo: MongoCounterRepository)(
   implicit ec: ExecutionContext)
     extends PlayMongoRepository[UpdatedPrintSuppressions](
@@ -121,17 +102,4 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
   }
 
   def count(): Future[Long] = collection.countDocuments().toFuture()
-}
-
-case class Counter(_id: ObjectId, name: String, value: Int)
-
-object Counter {
-  val formats: OFormat[Counter] = {
-    implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
-    Json.format[Counter]
-  }
-}
-
-trait CounterRepository {
-  def next(counterName: String)(implicit ec: ExecutionContext): Future[Int]
 }

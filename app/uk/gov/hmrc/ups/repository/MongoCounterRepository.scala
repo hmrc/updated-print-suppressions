@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.ups.repository
 
-import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
@@ -52,4 +51,8 @@ class MongoCounterRepository @Inject()(mongo: MongoComponent)(implicit ec: Execu
       .toFuture()
       .map(_.value)
   }
+}
+
+trait CounterRepository {
+  def next(counterName: String)(implicit ec: ExecutionContext): Future[Int]
 }
