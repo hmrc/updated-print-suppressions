@@ -49,13 +49,12 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
           IndexOptions()
             .name("uniquePreferenceId")
             .unique(true)
-            .sparse(false)),
-      ),
-      replaceIndexes = false
+            .sparse(false))
+      )
     ) {
 
-  private val logger = Logger(getClass.getName)
-  private val counterRepoDate = UpdatedPrintSuppressions.toString(date)
+  private[this] val logger = Logger(getClass)
+  private[this] val counterRepoDate = UpdatedPrintSuppressions.toString(date)
 
   def find(offset: Long, limit: Int): Future[List[PrintPreference]] = {
     val query = Filters.and(Filters.gte("counter", offset), Filters.lt("counter", offset + limit))
@@ -93,12 +92,9 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
             .recover {
               case e: MongoWriteException if e.getError.getCode == 11000 =>
                 logger.warn(s"failed to insert print preference $printPreference updated at ${updatedAt.getMillis}", e)
-                ()
             }
       })
-      .map { _ =>
-        ()
-      }
+      .map(_ => ())
   }
 
   def count(): Future[Long] = collection.countDocuments().toFuture()
