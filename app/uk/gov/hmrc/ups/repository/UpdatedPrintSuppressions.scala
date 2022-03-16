@@ -18,7 +18,7 @@ package uk.gov.hmrc.ups.repository
 
 import org.joda.time.{ DateTime, LocalDate }
 import org.mongodb.scala.bson.ObjectId
-import play.api.libs.json.{ Format, Json, OFormat }
+import play.api.libs.json.{ Format, JsValue, Json, OFormat }
 import uk.gov.hmrc.mongo.play.json.formats.{ MongoFormats, MongoJodaFormats }
 import uk.gov.hmrc.ups.model.PrintPreference
 
@@ -37,5 +37,5 @@ object UpdatedPrintSuppressions {
 
   def repoNameTemplate(date: LocalDate): String = s"updated_print_suppressions_${toString(date)}"
 
-  def updatedAtAsJson(updatedAt: DateTime) = Json.toJson(updatedAt)
+  def updatedAtAsJson(updatedAt: DateTime): JsValue = Json.toJson(updatedAt)
 }

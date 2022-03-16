@@ -16,19 +16,15 @@
 
 package uk.gov.hmrc.ups.repository
 
-import org.joda.time.{ DateTime, LocalDate }
 import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
-import uk.gov.hmrc.time.DateTimeUtils
-import uk.gov.hmrc.ups.model.PrintPreference
 
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext
 import scala.language.reflectiveCalls
 
 class MongoCounterRepositorySpec
