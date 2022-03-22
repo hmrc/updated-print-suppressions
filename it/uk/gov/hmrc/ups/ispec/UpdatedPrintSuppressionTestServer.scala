@@ -20,26 +20,30 @@ import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
 import org.joda.time.LocalDate
+import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.model.Filters
 import org.scalatest.concurrent.{ Eventually, ScalaFutures }
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{ JsObject, JsValue }
 import play.api.test.Helpers._
-import reactivemongo.play.json.ImplicitBSONHandlers._
-import reactivemongo.play.json.collection.JSONCollection
 import uk.gov.hmrc.integration.ServiceSpec
-import uk.gov.hmrc.mongo.MongoSpecSupport
+import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 abstract class UpdatedPrintSuppressionTestServer(override val databaseName: String = "updated-print-suppression-ispec")
-    extends PlaySpec with ServiceSpec with MongoSpecSupport with Eventually with BeforeAndAfterEach with PreferencesStub with EntityResolverStub
-    with ScalaFutures with BeforeAndAfterAll {
+    extends PlaySpec with ServiceSpec with MongoSupport with Eventually with BeforeAndAfterEach with PreferencesStub with EntityResolverStub with ScalaFutures
+    with BeforeAndAfterAll {
 
-  lazy val upsCollection = mongo().collection[JSONCollection](
-    UpdatedPrintSuppressions.repoNameTemplate(LocalDate.now)
-  )
+  lazy val upsCollection: MongoCollection[UpdatedPrintSuppressions] = {
+    val repoName = UpdatedPrintSuppressions.repoNameTemplate(LocalDate.now)
+    await(
+      mongoComponent.database
+        .createCollection(
+          repoName
+        )
+        .toFuture())
+    mongoComponent.database.getCollection[UpdatedPrintSuppressions](repoName)
+  }
   lazy val stubPort = 11111
   lazy val stubHost = "localhost"
   val wireMockServer: WireMockServer = new WireMockServer(wireMockConfig().port(stubPort))
@@ -67,8 +71,7 @@ abstract class UpdatedPrintSuppressionTestServer(override val databaseName: Stri
 
   override def beforeEach(): Unit = {
     WireMock.reset()
-    await(upsCollection.remove(JsObject(Map.empty[String, JsValue])))
-    await(mongoCounterRepository.removeAll())
+    await(upsCollection.deleteMany(Filters.empty()).toFuture())
+    await(mongoCounterRepository.collection.deleteMany(Filters.empty()).toFuture())
   }
-
 }

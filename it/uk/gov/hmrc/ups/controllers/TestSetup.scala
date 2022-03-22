@@ -17,22 +17,21 @@
 package uk.gov.hmrc.ups.controllers
 
 import org.joda.time.LocalDate
+import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.OFormat
 import play.api.test.Helpers._
-import play.modules.reactivemongo.ReactiveMongoComponent
+import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 
-import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
+import scala.concurrent.ExecutionContext
 
-trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach {
+trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with MongoSupport {
 
-  val reactiveMongoComponent: ReactiveMongoComponent
   val mongoCounterRepository: MongoCounterRepository
-
   val today: LocalDate = LocalDate.now
   val yesterday: LocalDate = today.minusDays(1)
 
@@ -43,12 +42,21 @@ trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   // Reset the counters
-  await(mongoCounterRepository.removeAll())
+  await(mongoCounterRepository.collection.deleteMany(Filters.empty()).toFuture())
 
-  val repoToday = new UpdatedPrintSuppressionsRepository(reactiveMongoComponent, today, mongoCounterRepository)
-  await(repoToday.removeAll())
+  val repoToday = new UpdatedPrintSuppressionsRepository(mongoComponent, today, mongoCounterRepository)
+  await(repoToday.collection.deleteMany(Filters.empty()).toFuture())
 
-  val repoYesterday = new UpdatedPrintSuppressionsRepository(reactiveMongoComponent, yesterday, mongoCounterRepository)
-  await(repoYesterday.removeAll())
+  val repoYesterday = new UpdatedPrintSuppressionsRepository(mongoComponent, yesterday, mongoCounterRepository)
+  await(repoYesterday.collection.deleteMany(Filters.empty()).toFuture())
 
+  override def beforeEach(): Unit = {
+    super.beforeEach()
+    await(repoYesterday.collection.drop().toFuture())
+  }
+
+  override def afterEach(): Unit = {
+    super.afterEach()
+    await(repoYesterday.collection.drop().toFuture())
+  }
 }

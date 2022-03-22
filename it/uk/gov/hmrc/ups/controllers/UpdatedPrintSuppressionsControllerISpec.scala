@@ -21,7 +21,6 @@ import org.scalatest.concurrent.IntegrationPatience
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.test.Helpers._
-import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.MongoCounterRepository
 
@@ -30,7 +29,6 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
   "list" should {
 
     "return an empty list when there are no print suppression change events for that day" in new TestSetup {
-      lazy override val reactiveMongoComponent: ReactiveMongoComponent = testMongoComponent
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val response = get(preferencesSaIndividualPrintSuppression(Some(yesterdayAsString), None, None))
@@ -40,7 +38,6 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "return all available print suppression change events occurred that day" in new TestSetup {
-      lazy override val reactiveMongoComponent: ReactiveMongoComponent = testMongoComponent
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val ppOne = PrintPreference("11111111", "someType", List.empty)
@@ -63,7 +60,6 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "return 'utr' instead of 'sautr' as idType for all available print suppression change events occurred that day" in new TestSetup {
-      lazy override val reactiveMongoComponent: ReactiveMongoComponent = testMongoComponent
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val pp1 = PrintPreference("11", "sautr", List("ABC"))
@@ -90,7 +86,6 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "not return print suppression change events occurred on another day" in new TestSetup {
-      lazy override val reactiveMongoComponent: ReactiveMongoComponent = testMongoComponent
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val ppOne = PrintPreference("11111111", "someType", List.empty)
@@ -113,7 +108,6 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "limit the number of events returned and a the path to next batch of events" in new TestSetup {
-      lazy override val reactiveMongoComponent: ReactiveMongoComponent = testMongoComponent
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       0 to 9 foreach { n =>
@@ -130,7 +124,6 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "honor the offset when another batch of events is requested" in new TestSetup {
-      lazy override val reactiveMongoComponent: ReactiveMongoComponent = testMongoComponent
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       0 to 9 foreach (n => await(repoYesterday.insert(PrintPreference(s"id_$n", "someType", List.empty), yesterday.toDateTimeAtStartOfDay)))
@@ -141,9 +134,8 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       (jsonBody \ "next").asOpt[String] must not be defined
       (jsonBody \ "updates").as[JsArray].value.size mustBe 4
     }
-//
+
     "allow a big number as an offset" in new TestSetup {
-      lazy override val reactiveMongoComponent: ReactiveMongoComponent = testMongoComponent
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val response = get(preferencesSaIndividualPrintSuppression(Some(yesterdayAsString), Some("50000"), None))
@@ -220,5 +212,4 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       (jsonBody \ "message").as[String] mustBe "updated-on is a mandatory parameter"
     }
   }
-
 }

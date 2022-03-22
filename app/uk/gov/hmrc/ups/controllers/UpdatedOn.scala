@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,39 @@
 
 package uk.gov.hmrc.ups.controllers
 
-import play.api.Logger
+import org.joda.time.LocalDate
+import org.joda.time.format.DateTimeFormatter
 import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc.{ QueryStringBindable, Result }
-import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.http.BadRequestException
-import uk.gov.hmrc.ups.model.{ Limit, PastLocalDate, UpdatedPrintPreferences }
+import uk.gov.hmrc.ups.model.{ Limit, PastLocalDate, PrintPreference, UpdatedPrintPreferences }
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.math.BigDecimal.RoundingMode
 import play.api.mvc.Results._
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.time.DateTimeUtils
 
-trait UpdatedOn {
+import javax.inject.Inject
 
-  val reactiveMongoComponent: ReactiveMongoComponent
-  val counterRepository: MongoCounterRepository
-  val localDateBinder: QueryStringBindable[PastLocalDate]
-  implicit val executionContext: ExecutionContext
+class UpdatedOn @Inject()(mongoComponent: MongoComponent, counterRepository: MongoCounterRepository)(implicit ec: ExecutionContext) {
+
   implicit val uppf: OFormat[UpdatedPrintPreferences] = UpdatedPrintPreferences.formats
 
-  protected def processUpdatedOn(optOffset: Option[Int], optLimit: Option[Limit], maybeUpdatedOn: Option[Either[String, PastLocalDate]]): Future[Result] =
+  def processUpdatedOn(
+    optOffset: Option[Int],
+    optLimit: Option[Limit],
+    maybeUpdatedOn: Option[Either[String, PastLocalDate]],
+    localDateBinder: QueryStringBindable[PastLocalDate]): Future[Result] =
     maybeUpdatedOn match {
       case Some(Right(updatedOn)) =>
         val upsRepository =
-          new UpdatedPrintSuppressionsRepository(reactiveMongoComponent, updatedOn.value, counterRepository)
+          new UpdatedPrintSuppressionsRepository(mongoComponent, updatedOn.value, counterRepository)
         val limit = optLimit.getOrElse(Limit.max)
         val offset = optOffset.getOrElse(1)
         for {
-          count   <- upsRepository.count
+          count   <- upsRepository.count()
           updates <- upsRepository.find(offset, limit.value)
         } yield {
           val pages: Int = (BigDecimal(count) / BigDecimal(limit.value)).setScale(0, RoundingMode.UP).intValue()
@@ -52,7 +56,7 @@ trait UpdatedOn {
             Json.toJson(
               UpdatedPrintPreferences(
                 pages = pages,
-                next = nextPageURL(updatedOn, limit, count, offset),
+                next = nextPageURL(updatedOn, limit, count, offset, localDateBinder),
                 updates = updates.map(_.convertIdType)
               )
             )
@@ -62,7 +66,12 @@ trait UpdatedOn {
       case Some(Left(message)) => throw new BadRequestException(message)
     }
 
-  private def nextPageURL(updatedOn: PastLocalDate, limit: Limit, count: Int, offset: Int): Option[String] =
+  private def nextPageURL(
+    updatedOn: PastLocalDate,
+    limit: Limit,
+    count: Long,
+    offset: Int,
+    localDateBinder: QueryStringBindable[PastLocalDate]): Option[String] =
     if (count > offset + limit.value) {
       Some(
         routes.UpdatedPrintSuppressionsController
@@ -75,4 +84,16 @@ trait UpdatedOn {
       None
     }
 
+  def insert(date: String, printPreference: PrintPreference): Future[Result] = {
+    val dtf: DateTimeFormatter = org.joda.time.format.DateTimeFormat.forPattern("yyyy-MM-dd")
+    new UpdatedPrintSuppressionsRepository(
+      mongoComponent,
+      LocalDate.parse(date, dtf),
+      counterRepository
+    ).insert(printPreference, DateTimeUtils.now)
+      .map { _ =>
+        Ok("Record inserted")
+      }
+      .recover { case _ => InternalServerError("Failed to insert the record") }
+  }
 }

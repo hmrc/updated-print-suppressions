@@ -19,12 +19,11 @@ package uk.gov.hmrc.ups.ispec
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.{ Scenario, StubMapping }
 import org.joda.time.DateTime
-import org.skyscreamer.jsonassert.JSONCompareMode
 import play.api.http.Status
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.controllers.RestFormats
+import uk.gov.hmrc.mongo.workitem.ProcessingStatus
 import uk.gov.hmrc.ups.model.EntityId
-import uk.gov.hmrc.workitem.ProcessingStatus
 
 trait PreferencesStub {
 

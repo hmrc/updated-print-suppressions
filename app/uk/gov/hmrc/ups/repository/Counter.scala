@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ups.controllers
+package uk.gov.hmrc.ups.repository
 
-import play.modules.reactivemongo.ReactiveMongoComponent
-import uk.gov.hmrc.mongo.{ MongoConnector, MongoSpecSupport }
+import org.mongodb.scala.bson.ObjectId
+import play.api.libs.json.{ Format, Json, OFormat }
+import uk.gov.hmrc.mongo.play.json.formats.MongoFormats
 
-trait MongoSupport extends MongoSpecSupport {
+case class Counter(_id: ObjectId, name: String, value: Int)
 
-  val testMongoComponent: ReactiveMongoComponent = new ReactiveMongoComponent {
-    override def mongoConnector: MongoConnector = mongoConnectorForTest
+object Counter {
+  val formats: OFormat[Counter] = {
+    implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
+    Json.format[Counter]
   }
-
 }

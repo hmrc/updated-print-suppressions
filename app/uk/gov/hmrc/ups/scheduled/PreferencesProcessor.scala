@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,30 @@
 
 package uk.gov.hmrc.ups.scheduled
 
-import javax.inject.{ Inject, Singleton }
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.http.Status._
 import play.api.libs.iteratee.{ Enumerator, Iteratee }
 import play.api.{ Configuration, Logger }
-import play.modules.reactivemongo.ReactiveMongoComponent
-import reactivemongo.api.DB
-import reactivemongo.play.json.collection.JSONCollection
 import uk.gov.hmrc.domain.SaUtr
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.workitem.ProcessingStatus
 import uk.gov.hmrc.ups.connectors.{ EntityResolverConnector, PreferencesConnector }
 import uk.gov.hmrc.ups.model.{ PrintPreference, PulledItem }
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions, UpdatedPrintSuppressionsRepository }
-import uk.gov.hmrc.workitem
-import uk.gov.hmrc.workitem.ProcessingStatus
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 
+import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class PreferencesProcessor @Inject()(
-  mongoComponent: ReactiveMongoComponent,
+  mongoComponent: MongoComponent,
   mongoCounterRepository: MongoCounterRepository,
   configuration: Configuration,
   preferencesConnector: PreferencesConnector,
   entityResolverConnector: EntityResolverConnector)(implicit ec: ExecutionContext) {
 
-  val db = mongoComponent.mongoConnector.db
-  val logger: Logger = Logger(this.getClass())
-  val connectionOnce: JSONCollection =
-    db().collection[JSONCollection](UpdatedPrintSuppressions.repoNameTemplate(LocalDate.now()))
+  val logger: Logger = Logger(getClass)
 
   lazy val formIds: List[String] =
     configuration
@@ -53,17 +47,12 @@ class PreferencesProcessor @Inject()(
       .getOrElse(throw new RuntimeException(s"configuration property form-types is not set"))
       .toList
 
-  def repo: UpdatedPrintSuppressionsRepository = {
-    val collection: JSONCollection =
-      db().collection[JSONCollection](UpdatedPrintSuppressions.repoNameTemplate(LocalDate.now()))
-
+  def repo: UpdatedPrintSuppressionsRepository =
     new UpdatedPrintSuppressionsRepository(
       mongoComponent,
       LocalDate.now(),
-      mongoCounterRepository,
-      Some(collection)
+      mongoCounterRepository
     )
-  }
 
   def run(implicit hc: HeaderCarrier): Future[TotalCounts] = {
     def incrementOnFailure(totals: TotalCounts): TotalCounts =
@@ -100,12 +89,12 @@ class PreferencesProcessor @Inject()(
       case Right(Some(entity)) =>
         entity.taxIdentifiers
           .collectFirst[SaUtr] { case utr: SaUtr => utr }
-          .fold(updatePreference(item.callbackUrl, workitem.Succeeded)) { utr =>
+          .fold(updatePreference(item.callbackUrl, ProcessingStatus.Succeeded)) { utr =>
             insertAndUpdate(createPrintPreference(utr, item), item.callbackUrl, item.updatedAt)
           }
 
       case x =>
-        val status = if (x.isRight) workitem.PermanentlyFailed else workitem.Failed
+        val status = if (x.isRight) ProcessingStatus.PermanentlyFailed else ProcessingStatus.Failed
         preferencesConnector.changeStatus(item.callbackUrl, status).map {
           case OK =>
             Failed(
@@ -124,11 +113,11 @@ class PreferencesProcessor @Inject()(
     val result = repo.insert(printPreference, updatedAt)
     result
       .flatMap { _ =>
-        updatePreference(callbackUrl, workitem.Succeeded)
+        updatePreference(callbackUrl, ProcessingStatus.Succeeded)
       }
       .recoverWith {
         case ex =>
-          preferencesConnector.changeStatus(callbackUrl, workitem.Failed).map { _ =>
+          preferencesConnector.changeStatus(callbackUrl, ProcessingStatus.Failed).map { _ =>
             Failed(s"failed to include $printPreference in updated print suppressions", Some(ex))
           }
       }

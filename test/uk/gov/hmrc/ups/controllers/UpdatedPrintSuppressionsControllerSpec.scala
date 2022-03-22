@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,8 @@ package uk.gov.hmrc.ups.controllers
 
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-import uk.gov.hmrc.mongo.MongoSpecSupport
 
-class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPerSuite with MongoSpecSupport {
+class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPerSuite {
   spec =>
 
   val controller = app.injector.instanceOf[UpdatedPrintSuppressionsController]
@@ -31,5 +30,4 @@ class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPe
       result mustNot be(null)
     }
   }
-
 }

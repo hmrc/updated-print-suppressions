@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,17 +31,16 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.{ Application, Configuration }
 import uk.gov.hmrc.domain.{ Nino, SaUtr }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.mongo.MongoSpecSupport
+import uk.gov.hmrc.mongo.workitem.ProcessingStatus
 import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.connectors.{ EntityResolverConnector, PreferencesConnector }
 import uk.gov.hmrc.ups.model.{ Entity, EntityId, PrintPreference, PulledItem }
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 import uk.gov.hmrc.ups.utils.Generate
-import uk.gov.hmrc.workitem
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSugar with MongoSpecSupport with GuiceOneAppPerSuite {
+class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSugar with GuiceOneAppPerSuite {
 
   val mockEntityResolverConnector: EntityResolverConnector = mock[EntityResolverConnector]
   val mockPreferencesConnector: PreferencesConnector = mock[PreferencesConnector]
@@ -62,15 +61,15 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
       reset(mockPreferencesConnector)
       when(mockEntityResolverConnector.getTaxIdentifiers(pulledItem.entityId))
         .thenReturn(Future.successful(Right(Some(entity))))
-      when(mockRepo.insert(any(), any())(any())).thenReturn(Future.successful())
-      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, workitem.Succeeded))
+      when(mockRepo.insert(any(), any())).thenReturn(Future.successful())
+      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded))
         .thenReturn(Future.successful(OK))
 
       preferencesProcessorSpy.processUpdates(pulledItem).futureValue mustBe Succeeded(s"updated preference: $callbackUrl")
 
       verify(mockEntityResolverConnector).getTaxIdentifiers(pulledItem.entityId)
-      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any())(any())
-      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, workitem.Succeeded)
+      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any())
+      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded)
     }
 
     "succeed when the user opted out digital" in new TestCase {
@@ -79,22 +78,22 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
 
       when(mockEntityResolverConnector.getTaxIdentifiers(pulledItem.entityId))
         .thenReturn(Future.successful(Right(Some(entity))))
-      when(mockRepo.insert(ArgumentMatchers.eq(optedOut), any())(any())).thenReturn(Future.successful(()))
-      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, workitem.Succeeded))
+      when(mockRepo.insert(ArgumentMatchers.eq(optedOut), any())).thenReturn(Future.successful(()))
+      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded))
         .thenReturn(Future.successful(OK))
 
       preferencesProcessorSpy.processUpdates(pulledItem.copy(paperless = false)).futureValue mustBe Succeeded(s"updated preference: $callbackUrl")
 
       verify(mockEntityResolverConnector).getTaxIdentifiers(pulledItem.entityId)
-      verify(mockRepo).insert(ArgumentMatchers.eq(optedOut), any())(any())
-      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, workitem.Succeeded)
+      verify(mockRepo).insert(ArgumentMatchers.eq(optedOut), any())
+      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded)
     }
 
     "mark preferences status as permanently failed when no entity found for the given entityId" in new TestCase {
       reset(mockPreferencesConnector)
       when(mockEntityResolverConnector.getTaxIdentifiers(pulledItem.entityId))
         .thenReturn(Future.successful(Right(None)))
-      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, workitem.PermanentlyFailed))
+      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, ProcessingStatus.PermanentlyFailed))
         .thenReturn(Future.successful(OK))
 
       preferencesProcessorSpy.processUpdates(pulledItem.copy(paperless = false)).futureValue mustBe Failed(
@@ -103,14 +102,14 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
 
       verify(mockEntityResolverConnector).getTaxIdentifiers(pulledItem.entityId)
       verifyNoInteractions(mockRepo)
-      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, workitem.PermanentlyFailed)
+      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, ProcessingStatus.PermanentlyFailed)
     }
 
     "mark preferences status as failed if there is any error communicated with entity resolver" in new TestCase {
       reset(mockPreferencesConnector)
       when(mockEntityResolverConnector.getTaxIdentifiers(pulledItem.entityId))
         .thenReturn(Future.successful(Left(BAD_GATEWAY)))
-      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, workitem.Failed))
+      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, ProcessingStatus.Failed))
         .thenReturn(Future.successful(OK))
 
       preferencesProcessorSpy.processUpdates(pulledItem.copy(paperless = false)).futureValue mustBe Failed(
@@ -119,21 +118,21 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
 
       verify(mockEntityResolverConnector).getTaxIdentifiers(pulledItem.entityId)
       verifyNoInteractions(mockRepo)
-      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, workitem.Failed)
+      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, ProcessingStatus.Failed)
     }
 
     "mark preference status as succeeded when nino-only user is found in entity-resolver" in new TestCase {
       reset(mockPreferencesConnector)
       when(mockEntityResolverConnector.getTaxIdentifiers(pulledItem.entityId))
         .thenReturn(Future.successful(Right(Some(ninoOnlyEntity))))
-      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, workitem.Succeeded))
+      when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded))
         .thenReturn(Future.successful(OK))
 
       preferencesProcessorSpy.processUpdates(pulledItem).futureValue mustBe Succeeded(s"updated preference: $callbackUrl")
 
       verify(mockEntityResolverConnector).getTaxIdentifiers(pulledItem.entityId)
       verifyNoInteractions(mockRepo)
-      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, workitem.Succeeded)
+      verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded)
     }
   }
 
@@ -141,21 +140,21 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
 
     "be considered failed when the record is inserted into UPS repo and the status of the updated preference is not ok" in new TestCase {
       reset(mockPreferencesConnector)
-      when(mockRepo.insert(ArgumentMatchers.eq(printPreference), any())(any())).thenReturn(Future.successful(()))
-      when(mockPreferencesConnector.changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(workitem.Succeeded))(any()))
+      when(mockRepo.insert(ArgumentMatchers.eq(printPreference), any())).thenReturn(Future.successful(()))
+      when(mockPreferencesConnector.changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Succeeded))(any()))
         .thenReturn(Future.successful(BAD_REQUEST))
 
       preferencesProcessorSpy.insertAndUpdate(printPreference, callbackUrl, DateTime.now()).futureValue mustBe Failed(
         s"failed to update preference: url: $callbackUrl status: $BAD_REQUEST")
 
-      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any())(any())
-      verify(mockPreferencesConnector).changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(workitem.Succeeded))(any())
+      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any())
+      verify(mockPreferencesConnector).changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Succeeded))(any())
     }
 
     "be considered failed when the record cannot be inserted into the UPS repo" in new TestCase {
       reset(mockPreferencesConnector)
-      when(mockRepo.insert(ArgumentMatchers.eq(printPreference), any())(any())).thenReturn(Future.failed(new RuntimeException()))
-      when(mockPreferencesConnector.changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(workitem.Failed))(any()))
+      when(mockRepo.insert(ArgumentMatchers.eq(printPreference), any())).thenReturn(Future.failed(new RuntimeException()))
+      when(mockPreferencesConnector.changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Failed))(any()))
         .thenReturn(Future.successful(OK))
 
       preferencesProcessorSpy.insertAndUpdate(printPreference, callbackUrl, DateTime.now()).futureValue match {
@@ -164,8 +163,8 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
         case _ => fail("should never happen")
       }
 
-      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any())(any())
-      verify(mockPreferencesConnector).changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(workitem.Failed))(any())
+      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any())
+      verify(mockPreferencesConnector).changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Failed))(any())
       verifyNoMoreInteractions(mockRepo)
     }
   }
@@ -183,10 +182,9 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
     val randomUtr: SaUtr = Generate.utr
     val randomNino: Nino = Generate.nino
     val randomEntityId: EntityId = Generate.entityId
-    val pulledItem = PulledItem(randomEntityId, true, DateTimeUtils.now.minusMinutes(10), "someUrl")
-    val printPreference = PrintPreference(randomUtr.value, "utr", forms)
-    val entity = Entity(randomEntityId, randomUtr)
-    val ninoOnlyEntity = Entity(randomEntityId, randomNino)
+    val pulledItem: PulledItem = PulledItem(randomEntityId, paperless = true, DateTimeUtils.now.minusMinutes(10), "someUrl")
+    val printPreference: PrintPreference = PrintPreference(randomUtr.value, "utr", forms)
+    val entity: Entity = Entity(randomEntityId, randomUtr)
+    val ninoOnlyEntity: Entity = Entity(randomEntityId, randomNino)
   }
-
 }

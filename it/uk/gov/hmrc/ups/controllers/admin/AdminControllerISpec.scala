@@ -21,7 +21,6 @@ import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
-import play.modules.reactivemongo.ReactiveMongoComponent
 import uk.gov.hmrc.ups.controllers.{ TestServer, TestSetup }
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
@@ -31,9 +30,7 @@ import scala.concurrent.Future
 class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterEach {
 
   "AdminController" should {
-
     "insert a new PrintPreference" in new TestSetup {
-      lazy override val reactiveMongoComponent: ReactiveMongoComponent = testMongoComponent
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
       private val preference = PrintPreference("someId", "someType", List("f1"))
       await(
@@ -41,16 +38,14 @@ class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterE
           .withQueryStringParameters("date" -> yesterdayAsString)
           .post(Json.toJson(preference)))
 
-      private val all: Future[List[UpdatedPrintSuppressions]] = repoYesterday.findAll()
+      private val all: Future[Seq[UpdatedPrintSuppressions]] = repoYesterday.collection.find().toFuture()
 
       await(all).map { x =>
         (x.counter, preference)
       } mustBe List((1, preference))
-      dropTestCollection(repoYesterday.collection.name)
     }
 
     "fetch a new PrintPreference created today using admin end-point" in new TestSetup {
-      lazy override val reactiveMongoComponent: ReactiveMongoComponent = testMongoComponent
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val ppOne = PrintPreference("11111111", "someType", List("f1", "f2"))
@@ -67,7 +62,6 @@ class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterE
       ((jsonBody \ "updates")(0) \ "idType").as[String] mustBe "someType"
       ((jsonBody \ "updates")(0) \ "formIds")(0).as[String] mustBe "f1"
       ((jsonBody \ "updates")(0) \ "formIds")(1).as[String] mustBe "f2"
-      dropTestCollection(repoToday.collection.name)
     }
   }
 
