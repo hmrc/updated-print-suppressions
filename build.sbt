@@ -17,9 +17,8 @@ lazy val microservice = Project(appName, file("."))
     targetJvm := "jvm-1.8",
     scalaVersion := "2.12.12",
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
-    dependencyOverrides ++= AppDependencies.overrides,
-    parallelExecution in Test := false,
-    fork in Test := false,
+    ConfigKey.configurationToKey(Test) / parallelExecution := false,
+    Test / fork := false,
     retrieveManaged := true,
     scalacOptions ++= List("-feature", "-Xlint"),
     evictionWarningOptions in update := EvictionWarningOptions.default.withWarnScalaVersionEviction(warnScalaVersionEviction = false)
@@ -36,16 +35,16 @@ lazy val microservice = Project(appName, file("."))
   .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
   .settings(
     Keys.fork in IntegrationTest := false,
-    unmanagedSourceDirectories in IntegrationTest := (baseDirectory in IntegrationTest)(base => Seq(base / "it")).value,
+    IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
     addTestReportOption(IntegrationTest, "int-test-reports"),
-    parallelExecution in IntegrationTest := false,
+    IntegrationTest / parallelExecution := false,
     routesGenerator := InjectedRoutesGenerator,
     inConfig(IntegrationTest)(
       scalafmtCoreSettings ++
         Seq(
-          compileInputs in compile := Def.taskDyn {
+          compile / compileInputs := Def.taskDyn {
             val task = test in (resolvedScoped.value.scope in scalafmt.key)
-            val previousInputs = (compileInputs in compile).value
+            val previousInputs = (compile / compileInputs).value
             task.map(_ => previousInputs)
           }.value
         )
