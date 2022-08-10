@@ -22,10 +22,10 @@ object AppDependencies {
 
   val compile = Seq(
     ws,
-    "uk.gov.hmrc"       %% "bootstrap-backend-play-28"         % "5.20.0",
+    "uk.gov.hmrc"       %% "bootstrap-backend-play-28"         % "6.4.0",
     "uk.gov.hmrc"       %% "auth-client"                       % "5.7.0-play-28",
-    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"                % "0.60.0",
-    "uk.gov.hmrc.mongo" %% "hmrc-mongo-work-item-repo-play-28" % "0.60.0",
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-play-28"                % "0.69.0",
+    "uk.gov.hmrc.mongo" %% "hmrc-mongo-work-item-repo-play-28" % "0.69.0",
     "uk.gov.hmrc"       %% "play-scheduling-play-28"           % "8.0.0",
     "uk.gov.hmrc"       %% "domain"                            % "6.2.0-play-28",
     "net.codingwell"    %% "scala-guice"                       % "5.0.2",
@@ -33,7 +33,7 @@ object AppDependencies {
   )
 
   val test = Set(
-    "uk.gov.hmrc.mongo"            %% "hmrc-mongo-test-play-28"  % "0.60.0"            % "test,it",
+    "uk.gov.hmrc.mongo"            %% "hmrc-mongo-test-play-28"  % "0.69.0"            % "test,it",
     "com.github.tomakehurst"       % "wiremock-jre8"             % "2.31.0"            % "test,it",
     "org.mockito"                  % "mockito-core"              % "3.9.0"             % "test,it",
     "org.scalatestplus"            %% "mockito-3-4"              % "3.2.8.0"           % "test,it",
