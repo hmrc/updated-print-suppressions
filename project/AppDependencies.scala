@@ -38,8 +38,7 @@ object AppDependencies {
     "uk.gov.hmrc"               %% "domain"                            % "6.2.0-play-28",
     "net.codingwell"            %% "scala-guice"                       % "5.1.0",
     "com.typesafe.play"         %% "play-json-joda"                    % "2.9.2",
-    "com.typesafe.play"         %% "play-iteratees"                    % "2.6.1",
-    "com.vladsch.flexmark"         % "flexmark-all"                    % "0.64.0"
+    "com.typesafe.play"         %% "play-iteratees"                    % "2.6.1"
   )
 
   val test = Set(
@@ -52,7 +51,7 @@ object AppDependencies {
     "org.scalatestplus.play"       %% "scalatestplus-play"       % "5.1.0"             % "test,it",
     "uk.gov.hmrc"                  %% "service-integration-test" % "1.2.0-play-28"     % "test,it",
     "com.typesafe.play"            %% "play-test"                % PlayVersion.current % "test,it",
-    "com.vladsch.flexmark"         % "flexmark-all"              % "0.64.0"            % "test,it",
+    "com.vladsch.flexmark"         %  "flexmark-all"             % "0.62.2"            % "test,it",
     "com.fasterxml.jackson.module" %% "jackson-module-scala"     % "2.12.5"            % "test,it",
     "com.typesafe.play"            %% "play-akka-http-server"    % "2.8.7"             % "test,it",
     "com.typesafe.akka"            %% "akka-testkit"             % AkkaVersion         % Test,
