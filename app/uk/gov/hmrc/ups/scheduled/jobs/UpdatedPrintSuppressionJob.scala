@@ -16,53 +16,69 @@
 
 package uk.gov.hmrc.ups.scheduled.jobs
 
-import java.util.concurrent.TimeUnit
-
-import javax.inject.{ Inject, Singleton }
-import org.joda.time.Duration
-import play.api.{ Configuration, Logger }
-import play.modules.reactivemongo.ReactiveMongoComponent
+import akka.actor.{Actor, Timers}
+import com.google.inject.{Inject, Singleton}
+import play.api.{Configuration, Logger}
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.lock.{ LockMongoRepository, LockRepository }
-import uk.gov.hmrc.play.scheduling.LockedScheduledJob
+import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
 import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
+import uk.gov.hmrc.ups.scheduled.jobs.UpdatedPrintSuppressionJob.{PeriodicTick, PeriodicTimerKey}
 
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ ExecutionContext, Future }
+import java.util.concurrent.TimeUnit
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import scala.concurrent.duration.Duration
+
+case class Result(message: String)
 
 @Singleton
-class UpdatedPrintSuppressionJob @Inject()(
-  configuration: Configuration,
-  reactiveMongoComponent: ReactiveMongoComponent,
-  preferencesProcessor: PreferencesProcessor)
-    extends LockedScheduledJob {
+class UpdatedPrintSuppressionJob @Inject()(configuration: Configuration,
+                                           mongoLockRepository: MongoLockRepository,
+                                           preferencesProcessor: PreferencesProcessor)
+  extends Actor with Timers {
 
-  override lazy val releaseLockAfter: Duration = Duration.millis(
-    configuration.getMillis(s"updatedPrintSuppressions.releaseLockAfter")
-  )
+  val logger: Logger = Logger(this.getClass)
+  val name: String = "updatedPrintSuppressions"
 
-  val logger: Logger = Logger(this.getClass())
+  val ls: LockService =
+    LockService(mongoLockRepository, s"$name-scheduled-job-lock", Duration(configuration.getMillis(s"$name.releaseLockAfter"), TimeUnit.MILLISECONDS))
 
-  def executeInLock(implicit ec: ExecutionContext): Future[Result] = {
-    logger.info(s"Start UpdatedPrintSuppressionJob")
-    preferencesProcessor.run(HeaderCarrier()).map { totals =>
-      Result(
-        s"UpdatedPrintSuppressions: ${totals.processed} items processed with ${totals.failed} failures"
-      )
+  override def preStart(): Unit = {
+
+    val initialDelay = Duration(configuration.getMillis(s"scheduling.$name.initialDelay"), TimeUnit.MILLISECONDS)
+    val interval = Duration(configuration.getMillis(s"scheduling.$name.interval"), TimeUnit.MILLISECONDS)
+
+    timers.startTimerWithFixedDelay(PeriodicTimerKey, PeriodicTick, initialDelay, interval)
+
+    logger.warn(s"$name job starting, initialDelay: $initialDelay, interval: $interval")
+    super.preStart()
+  }
+
+  override def receive: Receive = {
+    case PeriodicTick => processPreferences()
+  }
+
+  def processPreferences(): Future[Result] = {
+    logger.debug(s"Executing UpdatedPrintSuppressionJob")
+
+    ls.withLock {
+      preferencesProcessor.run(HeaderCarrier()).map { totals =>
+        logger.warn(s"Completed UpdatedPrintSuppressionJob. ${totals.processed} items processed with ${totals.failed} failures")
+        Result(s"UpdatedPrintSuppressions: ${totals.processed} items processed with ${totals.failed} failures")
+      }
+    } map {
+      case Some(Result(msg)) => Result(s"Job with $name run and completed with result $msg")
+      case None => Result(s"Job with $name cannot acquire lock, not running")
     }
   }
 
-  override val name: String = "updatedPrintSuppressions"
-
-  override val lockRepository: LockRepository = LockMongoRepository(
-    reactiveMongoComponent.mongoConnector.db
-  )
-
-  private def durationFromConfig(propertyKey: String): FiniteDuration = {
-    val millis: Long = configuration.getMillis(s"scheduling.$name.$propertyKey")
-    FiniteDuration(millis, TimeUnit.MILLISECONDS)
+  override def postStop(): Unit = {
+    logger.warn(s"Job $name stopped")
+    super.postStop()
   }
-  override def initialDelay: FiniteDuration = durationFromConfig("initialDelay")
+}
 
-  override def interval: FiniteDuration = durationFromConfig("interval")
+object UpdatedPrintSuppressionJob {
+  case object PeriodicTimerKey
+  case object PeriodicTick
 }

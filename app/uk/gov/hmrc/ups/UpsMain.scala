@@ -21,28 +21,21 @@ import javax.inject.{ Inject, Singleton }
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import play.api.Configuration
-import uk.gov.hmrc.play.scheduling.ScheduledJob
 
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class UpsMain @Inject()(scheduledJobs: Seq[ScheduledJob], actorSystem: ActorSystem, configuration: Configuration, lifecycle: ApplicationLifecycle)(
+class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, lifecycle: ApplicationLifecycle)(
   implicit val ec: ExecutionContext) {
 
-  val logger: Logger = Logger(this.getClass())
+  val logger: Logger = Logger(this.getClass)
   lifecycle.addStopHook(() =>
     Future {
       actorSystem.terminate()
   })
 
-  scheduledJobs.foreach(scheduleJob)
-
   val refreshInterval = configuration
     .getMillis(s"microservice.metrics.gauges.interval")
     .toInt
 
-  def scheduleJob(job: ScheduledJob)(implicit ec: ExecutionContext): Unit =
-    actorSystem.scheduler.schedule(job.initialDelay, job.interval)(job.execute.map { result =>
-      logger.debug(s"Job ${job.name} result: ${result.message}")
-    })
 }
