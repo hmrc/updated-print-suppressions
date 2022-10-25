@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.ups.scheduled
 
-import akka.actor.{ActorSystem, Props}
-import akka.testkit.{ImplicitSender, TestKit}
+import akka.actor.{ ActorSystem, Props }
+import akka.testkit.{ ImplicitSender, TestKit }
 import com.typesafe.config.ConfigFactory
 import org.mockito.ArgumentMatchers.any
-import org.mockito.Mockito.{atLeastOnce, verify, when}
+import org.mockito.Mockito.{ atLeastOnce, verify, when }
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpecLike
@@ -33,15 +33,9 @@ import uk.gov.hmrc.ups.scheduled.jobs.UpdatedPrintSuppressionJob
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
 
-class UpdatedPrintSuppressionJobSpec
-  extends TestKit(ActorSystem("spec"))
-    with ImplicitSender
-    with AnyWordSpecLike
-    with BeforeAndAfterAll
-    with Matchers  {
+class UpdatedPrintSuppressionJobSpec extends TestKit(ActorSystem("spec")) with ImplicitSender with AnyWordSpecLike with BeforeAndAfterAll with Matchers {
 
-  val config = ConfigFactory.parseString(
-    """
+  val config = ConfigFactory.parseString("""
     akka.loglevel = DEBUG
     akka.log-config-on-start = on
     updatedPrintSuppressions.retryFailedUpdatesAfter = 1 second
@@ -54,18 +48,17 @@ class UpdatedPrintSuppressionJobSpec
     }
     """)
 
-  override def afterAll: Unit = {
+  override def afterAll: Unit =
     TestKit.shutdownActorSystem(system)
-  }
 
   "An updated print suppression job " must {
     "execute the preferences processor in a timer" in {
 
-      val mlr  = mock[MongoLockRepository]
+      val mlr = mock[MongoLockRepository]
       val pp = mock[PreferencesProcessor]
 
       when(mlr.takeLock(any[String], any[String], any[Duration])).thenReturn(Future.successful(true))
-      when(pp.run(any[HeaderCarrier])).thenReturn(Future.successful(TotalCounts(2,2)))
+      when(pp.run(any[HeaderCarrier])).thenReturn(Future.successful(TotalCounts(2, 2)))
 
       system.actorOf(Props(new UpdatedPrintSuppressionJob(Configuration(config), mlr, pp)))
 

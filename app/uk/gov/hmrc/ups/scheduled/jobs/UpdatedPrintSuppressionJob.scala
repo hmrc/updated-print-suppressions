@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.ups.scheduled.jobs
 
-import akka.actor.{Actor, Timers}
-import com.google.inject.{Inject, Singleton}
-import play.api.{Configuration, Logger}
+import akka.actor.{ Actor, Timers }
+import com.google.inject.{ Inject, Singleton }
+import play.api.{ Configuration, Logger }
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.mongo.lock.{LockService, MongoLockRepository}
+import uk.gov.hmrc.mongo.lock.{ LockService, MongoLockRepository }
 import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
-import uk.gov.hmrc.ups.scheduled.jobs.UpdatedPrintSuppressionJob.{PeriodicTick, PeriodicTimerKey}
+import uk.gov.hmrc.ups.scheduled.jobs.UpdatedPrintSuppressionJob.{ PeriodicTick, PeriodicTimerKey }
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -32,10 +32,8 @@ import scala.concurrent.duration.Duration
 case class Result(message: String)
 
 @Singleton
-class UpdatedPrintSuppressionJob @Inject()(configuration: Configuration,
-                                           mongoLockRepository: MongoLockRepository,
-                                           preferencesProcessor: PreferencesProcessor)
-  extends Actor with Timers {
+class UpdatedPrintSuppressionJob @Inject()(configuration: Configuration, mongoLockRepository: MongoLockRepository, preferencesProcessor: PreferencesProcessor)
+    extends Actor with Timers {
 
   val logger: Logger = Logger(this.getClass)
   val name: String = "updatedPrintSuppressions"
@@ -68,7 +66,7 @@ class UpdatedPrintSuppressionJob @Inject()(configuration: Configuration,
       }
     } map {
       case Some(Result(msg)) => Result(s"Job with $name run and completed with result $msg")
-      case None => Result(s"Job with $name cannot acquire lock, not running")
+      case None              => Result(s"Job with $name cannot acquire lock, not running")
     }
   }
 

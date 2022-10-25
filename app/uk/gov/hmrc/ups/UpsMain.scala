@@ -25,8 +25,7 @@ import play.api.Configuration
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, lifecycle: ApplicationLifecycle)(
-  implicit val ec: ExecutionContext) {
+class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, lifecycle: ApplicationLifecycle)(implicit val ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
   lifecycle.addStopHook(() =>

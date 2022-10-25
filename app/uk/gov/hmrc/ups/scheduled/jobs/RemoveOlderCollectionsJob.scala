@@ -16,26 +16,25 @@
 
 package uk.gov.hmrc.ups.scheduled.jobs
 
-import akka.actor.{Actor, Timers}
-import com.google.inject.{Inject, Singleton}
+import akka.actor.{ Actor, Timers }
+import com.google.inject.{ Inject, Singleton }
 
 import java.util.concurrent.TimeUnit
-import play.api.{Configuration, Logger}
+import play.api.{ Configuration, Logger }
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsDatabase
-import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob.{PeriodicTick, PeriodicTimerKey}
-import uk.gov.hmrc.ups.scheduled.{Failed, RemoveOlderCollections, Succeeded}
+import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob.{ PeriodicTick, PeriodicTimerKey }
+import uk.gov.hmrc.ups.scheduled.{ Failed, RemoveOlderCollections, Succeeded }
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.{Duration, DurationLong, FiniteDuration}
+import scala.concurrent.duration.{ Duration, DurationLong, FiniteDuration }
 
 object RemoveOlderCollectionsJob {
   case object PeriodicTimerKey
   case object PeriodicTick
 }
 @Singleton
-class RemoveOlderCollectionsJob @Inject()(configuration: Configuration,
-                                            updatedPrintSuppressionsDatabase: UpdatedPrintSuppressionsDatabase)
-  extends Actor with Timers with RemoveOlderCollections {
+class RemoveOlderCollectionsJob @Inject()(configuration: Configuration, updatedPrintSuppressionsDatabase: UpdatedPrintSuppressionsDatabase)
+    extends Actor with Timers with RemoveOlderCollections {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -53,7 +52,7 @@ class RemoveOlderCollectionsJob @Inject()(configuration: Configuration,
   override def preStart(): Unit = {
 
     val initialDelay = Duration(configuration.getMillis(s"scheduling.$name.initialDelay"), TimeUnit.MILLISECONDS)
-    val interval     = Duration(configuration.getMillis(s"scheduling.$name.interval"), TimeUnit.MILLISECONDS)
+    val interval = Duration(configuration.getMillis(s"scheduling.$name.interval"), TimeUnit.MILLISECONDS)
 
     timers.startTimerWithFixedDelay(PeriodicTimerKey, PeriodicTick, initialDelay, interval)
 
