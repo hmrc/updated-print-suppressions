@@ -1,1 +1,0 @@
-{"name":"sbt","version":"1.6.2","bspVersion":"2.0.0-M5","languages":["scala"],"argv":["/Library/Java/JavaVirtualMachines/temurin-11.jdk/Contents/Home/bin/java","-Xms100m","-Xmx100m","-classpath","/nix/store/rd34r9ksqsl3ikvhdsb747d1b9x4y2yq-sbt-1.6.2/share/sbt/bin/sbt-launch.jar","-Dsbt.script=/Users/andrew/.nix-profile/bin/sbt","xsbt.boot.Boot","-bsp"]}

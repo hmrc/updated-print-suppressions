@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.ups
 
-import com.google.inject.{ AbstractModule, Provides }
+import com.google.inject.AbstractModule
 
-import javax.inject.Singleton
 import net.codingwell.scalaguice.ScalaModule
 import play.api.libs.concurrent.AkkaGuiceSupport
-import uk.gov.hmrc.play.scheduling.ScheduledJob
 import uk.gov.hmrc.ups.scheduled.jobs.{ RemoveOlderCollectionsJob, UpdatedPrintSuppressionJob }
 
 class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {
@@ -31,8 +29,4 @@ class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {
     bindActor[UpdatedPrintSuppressionJob]("UpdatedPrintSuppressionJob")
     bindActor[RemoveOlderCollectionsJob]("RemoveOlderCollectionsJob")
   }
-
-  @Provides
-  @Singleton
-  def scheduledJobsProvider(): Seq[ScheduledJob] = Seq()
 }

@@ -34,7 +34,6 @@ object AppDependencies {
     "uk.gov.hmrc"               %% "time"                              % "3.3.0",
     "uk.gov.hmrc.mongo"         %% "hmrc-mongo-play-28"                % "0.70.0",
     "uk.gov.hmrc.mongo"         %% "hmrc-mongo-work-item-repo-play-28" % "0.70.0",
-    "uk.gov.hmrc"               %% "play-scheduling-play-28"           % "8.1.0",
     "uk.gov.hmrc"               %% "domain"                            % "6.2.0-play-28",
     "net.codingwell"            %% "scala-guice"                       % "5.1.0",
     "com.typesafe.play"         %% "play-json-joda"                    % "2.9.2",
