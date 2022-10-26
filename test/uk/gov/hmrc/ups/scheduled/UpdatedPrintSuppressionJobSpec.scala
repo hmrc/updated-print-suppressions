@@ -22,7 +22,10 @@ import com.typesafe.config.ConfigFactory
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ atLeastOnce, verify, when }
 import org.scalatest.BeforeAndAfterAll
+import org.scalatest.concurrent.Eventually.eventually
+import org.scalatest.concurrent.PatienceConfiguration.Interval
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{ Seconds, Span }
 import org.scalatest.wordspec.AnyWordSpecLike
 import org.scalatestplus.mockito.MockitoSugar.mock
 import play.api.Configuration
@@ -43,7 +46,7 @@ class UpdatedPrintSuppressionJobSpec extends TestKit(ActorSystem("spec")) with I
     scheduling {
       updatedPrintSuppressions {
           initialDelay = 0 second
-          interval = 3 second
+          interval = 1 second
       }
     }
     """)
@@ -62,11 +65,10 @@ class UpdatedPrintSuppressionJobSpec extends TestKit(ActorSystem("spec")) with I
 
       system.actorOf(Props(new UpdatedPrintSuppressionJob(Configuration(config), mlr, pp)))
 
-      // TODO: Is there a better way to do this?
-      Thread.sleep(3000)
-
-      verify(mlr, atLeastOnce()).takeLock(any[String], any[String], any[Duration])
-      verify(pp, atLeastOnce()).run(any[HeaderCarrier])
+      eventually(Interval(Span(2, Seconds))) {
+        verify(mlr, atLeastOnce()).takeLock(any[String], any[String], any[Duration])
+        verify(pp, atLeastOnce()).run(any[HeaderCarrier])
+      }
     }
   }
 }
