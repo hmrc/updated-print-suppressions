@@ -16,39 +16,31 @@
 
 package uk.gov.hmrc.ups.scheduled.jobs
 
-import java.util.concurrent.TimeUnit
+import akka.actor.{ Actor, Timers }
+import com.google.inject.{ Inject, Singleton }
 
-import javax.inject.{ Inject, Singleton }
+import java.util.concurrent.TimeUnit
 import play.api.{ Configuration, Logger }
-import uk.gov.hmrc.play.scheduling.ExclusiveScheduledJob
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsDatabase
+import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob.{ PeriodicTick, PeriodicTimerKey }
 import uk.gov.hmrc.ups.scheduled.{ Failed, RemoveOlderCollections, Succeeded }
 
-import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.{ Duration, DurationLong, FiniteDuration }
 
+object RemoveOlderCollectionsJob {
+  case object PeriodicTimerKey
+  case object PeriodicTick
+}
 @Singleton
 class RemoveOlderCollectionsJob @Inject()(configuration: Configuration, updatedPrintSuppressionsDatabase: UpdatedPrintSuppressionsDatabase)
-    extends ExclusiveScheduledJob with RemoveOlderCollections {
-  val logger: Logger = Logger(this.getClass())
-  override def executeInMutex(implicit ec: ExecutionContext): Future[Result] =
-    removeOlderThan(durationInDays).map { totals =>
-      (totals.failures ++ totals.successes).foreach {
-        case Succeeded(collectionName) =>
-          logger.info(s"successfully removed collection $collectionName older than $durationInDays in $name job")
+    extends Actor with Timers with RemoveOlderCollections {
 
-        case Failed(collectionName, ex) =>
-          val msg = s"attempted to removed collection $collectionName and failed in $name job"
-          ex.fold(logger.error(msg)) { logger.error(msg, _) }
+  val logger: Logger = Logger(this.getClass)
 
-      }
-      val text = s"""$name completed with:
-                    |- failures on collections [${totals.failures.map(_.collectionName).mkString(",")}]
-                    |- collections [${totals.successes.map(_.collectionName).sorted.mkString(",")}] successfully removed
-                    |""".stripMargin
-      logger.error(text)
-      Result(text)
-    }
+  def name: String = "removeOlderCollections"
+
+  def repository: UpdatedPrintSuppressionsDatabase = updatedPrintSuppressionsDatabase
 
   private lazy val durationInDays = {
     val days = configuration
@@ -57,16 +49,43 @@ class RemoveOlderCollectionsJob @Inject()(configuration: Configuration, updatedP
     FiniteDuration(days, TimeUnit.DAYS)
   }
 
-  override def name: String = "removeOlderCollections"
+  override def preStart(): Unit = {
 
-  private def durationFromConfig(propertyKey: String): FiniteDuration = {
-    val millis = configuration.getMillis(s"scheduling.$name.$propertyKey")
-    FiniteDuration(millis, TimeUnit.MILLISECONDS)
+    val initialDelay = Duration(configuration.getMillis(s"scheduling.$name.initialDelay"), TimeUnit.MILLISECONDS)
+    val interval = Duration(configuration.getMillis(s"scheduling.$name.interval"), TimeUnit.MILLISECONDS)
+
+    timers.startTimerWithFixedDelay(PeriodicTimerKey, PeriodicTick, initialDelay, interval)
+
+    logger.warn(s"$name job starting, initialDelay: $initialDelay, interval: $interval")
+    super.preStart()
   }
 
-  override def initialDelay: FiniteDuration = durationFromConfig("initialDelay")
+  override def receive: Receive = {
+    case PeriodicTick => {
+      removeOlderThan(durationInDays).map { totals =>
+        (totals.failures ++ totals.successes).foreach {
+          case Succeeded(collectionName) =>
+            logger.info(s"successfully removed collection $collectionName older than $durationInDays in $name job")
 
-  override def interval: FiniteDuration = durationFromConfig("interval")
+          case Failed(collectionName, ex) =>
+            val msg = s"attempted to removed collection $collectionName and failed in $name job"
+            ex.fold(logger.error(msg)) {
+              logger.error(msg, _)
+            }
+        }
+        val text =
+          s"""Completed $name with:
+             |- failures on collections [${totals.failures.map(_.collectionName).mkString(",")}]
+             |- collections [${totals.successes.map(_.collectionName).sorted.mkString(",")}] successfully removed
+             |""".stripMargin
+        logger.warn(text)
+        Result(text)
+      }
+    }
+  }
 
-  override def repository: UpdatedPrintSuppressionsDatabase = updatedPrintSuppressionsDatabase
+  override def postStop(): Unit = {
+    logger.warn(s"Job $name stopped")
+    super.postStop()
+  }
 }

@@ -16,25 +16,17 @@
 
 package uk.gov.hmrc.ups
 
-import com.google.inject.{ AbstractModule, Provides }
-import javax.inject.Singleton
+import com.google.inject.AbstractModule
+
 import net.codingwell.scalaguice.ScalaModule
-import uk.gov.hmrc.play.scheduling.ScheduledJob
+import play.api.libs.concurrent.AkkaGuiceSupport
 import uk.gov.hmrc.ups.scheduled.jobs.{ RemoveOlderCollectionsJob, UpdatedPrintSuppressionJob }
 
-class UpsModule extends AbstractModule with ScalaModule {
+class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {
 
-  override def configure(): Unit =
+  override def configure(): Unit = {
     bind[UpsMain].asEagerSingleton()
-
-  @Provides
-  @Singleton
-  def scheduledJobsProvider(
-    removeOlderCollections: RemoveOlderCollectionsJob,
-    updatedPrintSuppressionJob: UpdatedPrintSuppressionJob
-  ): Seq[ScheduledJob] =
-    Seq(
-      removeOlderCollections,
-      updatedPrintSuppressionJob
-    )
+    bindActor[UpdatedPrintSuppressionJob]("UpdatedPrintSuppressionJob")
+    bindActor[RemoveOlderCollectionsJob]("RemoveOlderCollectionsJob")
+  }
 }
