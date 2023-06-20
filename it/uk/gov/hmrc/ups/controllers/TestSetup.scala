@@ -25,8 +25,9 @@ import play.api.libs.json.OFormat
 import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
+import uk.gov.hmrc.ups.repository.{MongoCounterRepository, UpdatedPrintSuppressionsRepository}
 
+import scala.annotation.nowarn
 import scala.concurrent.ExecutionContext
 
 trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with MongoSupport {
@@ -50,11 +51,13 @@ trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with 
   val repoYesterday = new UpdatedPrintSuppressionsRepository(mongoComponent, yesterday, mongoCounterRepository)
   await(repoYesterday.collection.deleteMany(Filters.empty()).toFuture())
 
+  @nowarn("msg=discarded non-Unit value")
   override def beforeEach(): Unit = {
     super.beforeEach()
     await(repoYesterday.collection.drop().toFuture())
   }
 
+  @nowarn("msg=discarded non-Unit value")
   override def afterEach(): Unit = {
     super.afterEach()
     await(repoYesterday.collection.drop().toFuture())

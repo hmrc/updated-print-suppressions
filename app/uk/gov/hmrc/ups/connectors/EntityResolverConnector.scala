@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,10 @@ package uk.gov.hmrc.ups.connectors
 
 import javax.inject.{ Inject, Singleton }
 import play.api.http.Status._
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpClient, HttpResponse }
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
 import uk.gov.hmrc.ups.model.{ Entity, EntityId }
-
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton

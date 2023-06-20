@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import uk.gov.hmrc.ups.model.Limit
 import scala.util.Try
 
 trait LimitBinder extends QueryStringBindable[Limit] {
+
+  import scala.language.postfixOps
 
   def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, Limit]] =
     params.get(key).flatMap(_.headOption).map { l: String =>

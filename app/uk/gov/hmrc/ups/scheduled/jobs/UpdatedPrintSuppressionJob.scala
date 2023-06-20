@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 import uk.gov.hmrc.ups.scheduled.jobs.UpdatedPrintSuppressionJob.{ PeriodicTick, PeriodicTimerKey }
 
 import java.util.concurrent.TimeUnit
+import scala.annotation.nowarn
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration.Duration
@@ -52,8 +53,10 @@ class UpdatedPrintSuppressionJob @Inject()(configuration: Configuration, mongoLo
     super.preStart()
   }
 
+  @nowarn("msg=discarded non-Unit value")
   override def receive: Receive = {
-    case PeriodicTick => processPreferences()
+    case PeriodicTick =>
+      processPreferences()
   }
 
   def processPreferences(): Future[Result] = {

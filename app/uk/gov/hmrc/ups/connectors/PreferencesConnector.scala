@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,11 @@ import play.api.http.Status._
 import play.api.libs.json.JodaWrites.{ JodaDateTimeWrites => _ }
 import play.api.libs.json.{ Format, JodaReads, JodaWrites, JsResult, JsValue, Json }
 import play.api.{ Configuration, Logger }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpReads, HttpResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpClient, HttpReads, HttpResponse }
 import uk.gov.hmrc.mongo.workitem.ProcessingStatus
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
-import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.model.{ Filters, PulledItem, WorkItemRequest }
+import uk.gov.hmrc.ups.utils.DateTimeUtils
 
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }

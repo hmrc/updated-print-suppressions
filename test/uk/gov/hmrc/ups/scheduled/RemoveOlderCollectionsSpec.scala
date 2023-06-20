@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,6 +25,8 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
 
+import scala.language.postfixOps
+
 class RemoveOlderCollectionsSpec extends PlaySpec with ScalaFutures {
 
   "remove older collections" should {
@@ -34,7 +36,7 @@ class RemoveOlderCollectionsSpec extends PlaySpec with ScalaFutures {
       }.toList
 
       private val totals =
-        compose(listRepoNames, removeRepoColls(expectedResults, _), filterUpsCollectionsOnly(_, expirationPeriod)).futureValue
+        compose(() => listRepoNames(), removeRepoColls(expectedResults, _), filterUpsCollectionsOnly(_, expirationPeriod)).futureValue
 
       totals.failures mustBe List.empty
       totals.successes.map { _.collectionName } must contain only (expectedResults: _*)
@@ -43,19 +45,19 @@ class RemoveOlderCollectionsSpec extends PlaySpec with ScalaFutures {
     "perform no deletions when provided an empty list of names" in new SetUp {
       compose(
         () => Future.successful(List.empty[String]),
-        value => Future { () },
-        filterUpsCollectionsOnly(_, 0 days)
+        _ => Future { () },
+        filterUpsCollectionsOnly(_, 0.days)
       ).futureValue mustBe Totals(List.empty, List.empty)
     }
 
     "removes collections independently, allowing for partial success" in new SetUp {
       val (failures, successes) =
-        compose(listRepoNames, removeRepoColls(List(repoName(3)), _), filterUpsCollectionsOnly(_, expirationPeriod)).map { totals =>
+        compose(() => listRepoNames(), removeRepoColls(List(repoName(3)), _), filterUpsCollectionsOnly(_, expirationPeriod)).map { totals =>
           (totals.failures.map(_.collectionName), totals.successes.map(_.collectionName))
         }.futureValue
 
-      failures must contain only (repoName(2), repoName(4))
-      successes must contain only repoName(3)
+      failures must contain.only(repoName(2), repoName(4))
+      successes must contain only (repoName(3))
     }
 
   }

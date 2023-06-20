@@ -24,17 +24,13 @@ import org.scalatest.Ignore
 import play.api.http.Status
 import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.workitem.ProcessingStatus
-import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.ispec.UpdatedPrintSuppressionTestServer
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions
-import uk.gov.hmrc.ups.scheduled.jobs.UpdatedPrintSuppressionJob
-import uk.gov.hmrc.ups.utils.Generate
+import uk.gov.hmrc.ups.utils.{DateTimeUtils, Generate}
 
 @Ignore
 class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer {
-
-  private val updatedPrintSuppressionJob = app.injector.instanceOf[UpdatedPrintSuppressionJob]
 
   "UpdatedPrintSuppression job" should {
 

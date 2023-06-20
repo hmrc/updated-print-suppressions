@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,18 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
-import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.model.PrintPreference
+import uk.gov.hmrc.ups.utils.DateTimeUtils
 
 import scala.concurrent.ExecutionContext
 
 @DoNotDiscover
 class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions] {
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
   val repository: UpdatedPrintSuppressionsRepository =
     new UpdatedPrintSuppressionsRepository(mongoComponent, new LocalDate().minusDays(1), mongoCounterRepository)
-
-  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val BATCH_SIZE: Int = 100000
 

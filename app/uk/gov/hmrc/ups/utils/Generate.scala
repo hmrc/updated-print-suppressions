@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,10 @@ import scala.util.Random
 object Generate {
   private val random = new Random()
 
-  def nino = Nino(f"CE${random.nextInt(100000)}%06dD")
-  def utr = SaUtr(UUID.randomUUID.toString)
-  def entityId =
+  private val RandomMax = 100000;
+
+  def nino: Nino = Nino(f"CE${random.nextInt(RandomMax)}%06dD")
+  def utr: SaUtr = SaUtr(UUID.randomUUID.toString)
+  def entityId: EntityId =
     EntityId(UUID.randomUUID.toString)
 }

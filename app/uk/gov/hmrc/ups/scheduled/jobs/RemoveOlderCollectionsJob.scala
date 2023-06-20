@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,8 +25,9 @@ import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsDatabase
 import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob.{ PeriodicTick, PeriodicTimerKey }
 import uk.gov.hmrc.ups.scheduled.{ Failed, RemoveOlderCollections, Succeeded }
 
+import scala.annotation.nowarn
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.{ Duration, DurationLong, FiniteDuration }
+import scala.concurrent.duration.{ Duration, FiniteDuration }
 
 object RemoveOlderCollectionsJob {
   case object PeriodicTimerKey
@@ -60,6 +61,7 @@ class RemoveOlderCollectionsJob @Inject()(configuration: Configuration, updatedP
     super.preStart()
   }
 
+  @nowarn("msg=discarded non-Unit value")
   override def receive: Receive = {
     case PeriodicTick => {
       removeOlderThan(durationInDays).map { totals =>

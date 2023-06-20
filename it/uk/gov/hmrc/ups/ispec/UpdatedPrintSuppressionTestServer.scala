@@ -22,13 +22,15 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
 import org.joda.time.LocalDate
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters
-import org.scalatest.concurrent.{ Eventually, ScalaFutures }
-import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
+import org.scalatest.concurrent.{Eventually, ScalaFutures}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.PlaySpec
 import play.api.test.Helpers._
 import uk.gov.hmrc.integration.ServiceSpec
 import uk.gov.hmrc.mongo.test.MongoSupport
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
+import uk.gov.hmrc.ups.repository.{MongoCounterRepository, UpdatedPrintSuppressions}
+
+import scala.annotation.nowarn
 
 abstract class UpdatedPrintSuppressionTestServer(override val databaseName: String = "updated-print-suppression-ispec")
     extends PlaySpec with ServiceSpec with MongoSupport with Eventually with BeforeAndAfterEach with PreferencesStub with EntityResolverStub with ScalaFutures
@@ -69,6 +71,7 @@ abstract class UpdatedPrintSuppressionTestServer(override val databaseName: Stri
   override def afterAll(): Unit =
     wireMockServer.stop()
 
+  @nowarn("msg=discarded non-Unit value")
   override def beforeEach(): Unit = {
     WireMock.reset()
     await(upsCollection.deleteMany(Filters.empty()).toFuture())
