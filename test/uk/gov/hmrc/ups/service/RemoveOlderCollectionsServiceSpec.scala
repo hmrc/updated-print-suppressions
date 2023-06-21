@@ -25,21 +25,21 @@ import play.api.Configuration
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsDatabase
 import uk.gov.hmrc.ups.scheduling.Result
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 class RemoveOlderCollectionsServiceSpec extends PlaySpec with ScalaFutures {
 
   implicit val ec = ExecutionContext.Implicits.global
-  
+
   "remove older collections service" should {
     "pass" in new SetUp {
       when(mockDB.upsCollectionNames).thenReturn(Future.successful(List("updated_20230620")))
       when(mockDB.dropCollection(any[String])(any[ExecutionContext])).thenReturn(Future.successful(()))
-      
+
       val result: Future[Result] = service.execute
 
       val value = result.futureValue.message
-      
+
       value.contains("failures on collections []") must be(true)
       value.contains("collections [updated_20230620] successfully removed") must be(true)
     }

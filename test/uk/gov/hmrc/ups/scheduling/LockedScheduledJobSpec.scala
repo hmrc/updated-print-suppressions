@@ -16,32 +16,26 @@
 
 package uk.gov.hmrc.ups.scheduling
 
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.time.{Millis, Span}
+import org.scalatest.time.{ Millis, Span }
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.mongo.lock.{LockRepository, MongoLockRepository}
+import uk.gov.hmrc.mongo.lock.{ LockRepository, MongoLockRepository }
 import uk.gov.hmrc.mongo.MongoComponent
 
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{CountDownLatch, Executors, TimeUnit}
+import java.util.concurrent.{ CountDownLatch, Executors, TimeUnit }
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ Await, ExecutionContext, Future }
 import scala.util.Try
 
-class LockedScheduledJobSpec
-    extends AnyWordSpec
-    with Matchers
-    with ScalaFutures
-    with GuiceOneAppPerTest
-    with BeforeAndAfterAll
-    with BeforeAndAfterEach {
+class LockedScheduledJobSpec extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerTest with BeforeAndAfterAll with BeforeAndAfterEach {
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
@@ -49,19 +43,19 @@ class LockedScheduledJobSpec
       .build()
 
   val mongoComponent: MongoComponent = MongoComponent("mongodb://localhost:27017/test-play-schedule")
-  
+
 //  implicit val ec = Implicits.global
-  
+
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(500, Millis), interval = Span(500, Millis))
 
   class SimpleJob(val name: String) extends LockedScheduledJob {
     val mockRunModeBridge = mock[RunModeBridge]
-    
+
     override val releaseLockAfter: Duration = Duration(5, TimeUnit.SECONDS)
 
     val start = new CountDownLatch(1)
 
-    override val lockRepo: LockRepository =  app.injector.instanceOf[MongoLockRepository] //  new MongoLockRepository()(ec)
+    override val lockRepo: LockRepository = app.injector.instanceOf[MongoLockRepository] //  new MongoLockRepository()(ec)
 
     def continueExecution(): Unit = start.countDown()
 
@@ -82,11 +76,10 @@ class LockedScheduledJobSpec
     override def runModeBridge: RunModeBridge = mockRunModeBridge
   }
 
-  override def afterAll(): Unit = {
+  override def afterAll(): Unit =
     // shutdown mongo system
     mongoComponent.client.close()
-  }
-  
+
   "ExclusiveScheduledJob" should {
 
     "let job run in sequence" in {

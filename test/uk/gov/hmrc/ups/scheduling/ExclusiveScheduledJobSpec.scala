@@ -18,27 +18,27 @@ package uk.gov.hmrc.ups.scheduling
 
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.time.{Millis, Seconds, Span}
+import org.scalatest.time.{ Millis, Seconds, Span }
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar.mock
 
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.concurrent.{ CountDownLatch, TimeUnit }
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.Try
 
 class ExclusiveScheduledJobSpec extends AnyWordSpec with Matchers with ScalaFutures {
 
   private val HalfSecond: Long = 500
-  private val Five: Long       = 5
+  private val Five: Long = 5
   override implicit def patienceConfig: PatienceConfig =
     PatienceConfig(timeout = Span(Five, Seconds), interval = Span(HalfSecond, Millis))
 
   class SimpleJob extends ExclusiveScheduledJob {
 
     val mockRunModeBridge = mock[RunModeBridge]
-    
+
     val start = new CountDownLatch(1)
 
     def continueExecution(): Unit = start.countDown()
@@ -76,14 +76,14 @@ class ExclusiveScheduledJobSpec extends AnyWordSpec with Matchers with ScalaFutu
       val job = new SimpleJob
 
       val pausedExecution = job.execute
-      pausedExecution.isCompleted     shouldBe false
-      job.isRunning.futureValue       shouldBe true
+      pausedExecution.isCompleted shouldBe false
+      job.isRunning.futureValue shouldBe true
       job.execute.futureValue.message shouldBe "Skipping execution: job running"
-      job.isRunning.futureValue       shouldBe true
+      job.isRunning.futureValue shouldBe true
 
       job.continueExecution()
       pausedExecution.futureValue.message shouldBe "1"
-      job.isRunning.futureValue           shouldBe false
+      job.isRunning.futureValue shouldBe false
 
     }
 
