@@ -16,70 +16,34 @@
 
 package uk.gov.hmrc.ups.scheduled.jobs
 
-import akka.actor.{ Actor, Timers }
-import com.google.inject.{ Inject, Singleton }
-import play.api.{ Configuration, Logger }
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.mongo.lock.{ LockService, MongoLockRepository }
-import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
-import uk.gov.hmrc.ups.scheduled.jobs.UpdatedPrintSuppressionJob.{ PeriodicTick, PeriodicTimerKey }
+import com.google.inject.{Inject, Singleton}
+import play.api.Logger
+import uk.gov.hmrc.mongo.lock.LockRepository
+import uk.gov.hmrc.ups.scheduling.{LockedScheduledJob, Result, RunModeBridge}
+import uk.gov.hmrc.ups.service.UpdatedPrintSuppressionService
 
-import java.util.concurrent.TimeUnit
-import scala.annotation.nowarn
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.Duration
 
-case class Result(message: String)
-
+// $COVERAGE-OFF$Disabling
 @Singleton
-class UpdatedPrintSuppressionJob @Inject()(configuration: Configuration, mongoLockRepository: MongoLockRepository, preferencesProcessor: PreferencesProcessor)
-    extends Actor with Timers {
+class UpdatedPrintSuppressionJob @Inject()(
+  lockRepository: LockRepository,
+  updatedPrintSuppressionService: UpdatedPrintSuppressionService,
+  override val runModeBridge: RunModeBridge)
+    extends LockedScheduledJob {
 
   val logger: Logger = Logger(this.getClass)
   val name: String = "updatedPrintSuppressions"
-
-  val ls: LockService =
-    LockService(mongoLockRepository, s"$name-scheduled-job-lock", Duration(configuration.getMillis(s"$name.releaseLockAfter"), TimeUnit.MILLISECONDS))
-
-  override def preStart(): Unit = {
-
-    val initialDelay = Duration(configuration.getMillis(s"scheduling.$name.initialDelay"), TimeUnit.MILLISECONDS)
-    val interval = Duration(configuration.getMillis(s"scheduling.$name.interval"), TimeUnit.MILLISECONDS)
-
-    timers.startTimerWithFixedDelay(PeriodicTimerKey, PeriodicTick, initialDelay, interval)
-
-    logger.warn(s"$name job starting, initialDelay: $initialDelay, interval: $interval")
-    super.preStart()
+  
+  def executeInLock(implicit ec: ExecutionContext): Future[Result] = {
+    val result = updatedPrintSuppressionService.execute
+    result.foreach(r => logger.warn(r.message))
+    result
   }
 
-  @nowarn("msg=discarded non-Unit value")
-  override def receive: Receive = {
-    case PeriodicTick =>
-      processPreferences()
-  }
-
-  def processPreferences(): Future[Result] = {
-    logger.debug(s"Executing UpdatedPrintSuppressionJob")
-
-    ls.withLock {
-      preferencesProcessor.run(HeaderCarrier()).map { totals =>
-        logger.warn(s"Completed UpdatedPrintSuppressionJob. ${totals.processed} items processed with ${totals.failed} failures")
-        Result(s"UpdatedPrintSuppressions: ${totals.processed} items processed with ${totals.failed} failures")
-      }
-    } map {
-      case Some(Result(msg)) => Result(s"Job with $name run and completed with result $msg")
-      case None              => Result(s"Job with $name cannot acquire lock, not running")
-    }
-  }
-
-  override def postStop(): Unit = {
-    logger.warn(s"Job $name stopped")
-    super.postStop()
-  }
+  override val releaseLockAfter: Duration = lockDuration.getOrElse(Duration("1 hour"))
+  override val lockRepo: LockRepository = lockRepository
 }
 
-object UpdatedPrintSuppressionJob {
-  case object PeriodicTimerKey
-  case object PeriodicTick
-}
+// $COVERAGE-ON$

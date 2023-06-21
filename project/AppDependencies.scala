@@ -32,7 +32,6 @@ object AppDependencies {
     "com.typesafe.akka"         %% "akka-stream"                       % AkkaVersion,
     "com.typesafe.akka"         %% "akka-serialization-jackson"        % AkkaVersion,
     "uk.gov.hmrc"               %% "bootstrap-backend-play-28"         % bootstrapBackend,
-    "uk.gov.hmrc.mongo"         %% "hmrc-mongo-play-28"                % hmrcMongo,
     "uk.gov.hmrc.mongo"         %% "hmrc-mongo-work-item-repo-play-28" % hmrcMongo,
     "uk.gov.hmrc"               %% "domain"                            % "8.3.0-play-28",
     "net.codingwell"            %% "scala-guice"                       % "5.1.1",
@@ -40,6 +39,7 @@ object AppDependencies {
   )
 
   val test = Set(
+    "uk.gov.hmrc"                  %% "bootstrap-test-play-28"    % bootstrapBackend    % "test, it",
     "uk.gov.hmrc.mongo"            %% "hmrc-mongo-test-play-28"   % hmrcMongo           % "test,it",
     "com.github.tomakehurst"       %  "wiremock-standalone"       % "2.27.2"            % "test,it",
     "org.mockito"                  %  "mockito-core"              % "5.2.0"             % "test,it",

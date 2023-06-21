@@ -5,6 +5,8 @@
 
 Microservice responsible for the print suppression preference of a customer.
 
+## IMPORTANT
+Please note that the integration tests do NOT run in the pipeline at this time.
 
 ## Run the tests and sbt fmt before raising a PR
 

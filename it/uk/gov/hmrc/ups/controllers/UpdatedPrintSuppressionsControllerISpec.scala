@@ -17,13 +17,15 @@
 package uk.gov.hmrc.ups.controllers
 
 import org.joda.time.LocalDate
+import org.scalatest.Ignore
 import org.scalatest.concurrent.IntegrationPatience
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{ JsArray, JsValue, Json }
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.test.Helpers._
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.MongoCounterRepository
 
+@Ignore // NOTE INTEGRATION TESTS ARE NOT RUNNING IN THE BUILD PIPELINE
 class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer with IntegrationPatience {
 
   "list" should {

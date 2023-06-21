@@ -16,17 +16,33 @@
 
 package uk.gov.hmrc.ups
 
-import com.google.inject.AbstractModule
-
+import com.google.inject.{AbstractModule, Provides, Singleton}
 import net.codingwell.scalaguice.ScalaModule
+import play.api.{Configuration, Logger}
 import play.api.libs.concurrent.AkkaGuiceSupport
-import uk.gov.hmrc.ups.scheduled.jobs.{ RemoveOlderCollectionsJob, UpdatedPrintSuppressionJob }
+import uk.gov.hmrc.ups.scheduled.jobs.{RemoveOlderCollectionsJob, UpdatedPrintSuppressionJob}
+import uk.gov.hmrc.ups.scheduling.ScheduledJob
 
 class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {
 
-  override def configure(): Unit = {
-    bind[UpsMain].asEagerSingleton()
-    bindActor[UpdatedPrintSuppressionJob]("UpdatedPrintSuppressionJob")
-    bindActor[RemoveOlderCollectionsJob]("RemoveOlderCollectionsJob")
+  private val logger: Logger = Logger(getClass)
+
+  override def configure(): Unit = bind[UpsMain].asEagerSingleton()
+
+  val taskEnabled: (Configuration, String) => Boolean = (config: Configuration, name: String) => {
+    val enabled = config.getOptional[Boolean](s"scheduling.$name.taskEnabled").getOrElse(false)
+    if (!enabled) logger.warn(s"'scheduling.$name.taskEnabled' is not true and the scheduled job will not be started")
+    enabled
   }
+
+  @Provides
+  @Singleton
+  def scheduledJobsProvider(
+    removeOlderCollectionsJob: RemoveOlderCollectionsJob,
+    updatedPrintSuppressionJob: UpdatedPrintSuppressionJob
+  ): Seq[ScheduledJob] =
+    Seq(
+      removeOlderCollectionsJob,
+      updatedPrintSuppressionJob
+    )
 }

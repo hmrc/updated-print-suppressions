@@ -46,12 +46,12 @@ class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with Default
       0 to 29 foreach { i =>
         {
           println(s"Generating records from ${i * BATCH_SIZE} to ${(i * BATCH_SIZE) + BATCH_SIZE}")
-          await(repository.collection.insertMany(generateBATCH_SIZEEntries(i * BATCH_SIZE)).toFuture())
+          await(repository.collection.insertMany(generateBatchSizeEntries(i * BATCH_SIZE)).toFuture())
         }
       }
     }
 
-    def generateBATCH_SIZEEntries(offset: Int): List[UpdatedPrintSuppressions] =
+    def generateBatchSizeEntries(offset: Int): List[UpdatedPrintSuppressions] =
       for (n <- List.range(offset, offset + BATCH_SIZE))
         yield
           UpdatedPrintSuppressions(
