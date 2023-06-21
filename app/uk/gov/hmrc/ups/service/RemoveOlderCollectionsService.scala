@@ -16,33 +16,34 @@
 
 package uk.gov.hmrc.ups.service
 
-import play.api.{Configuration, Logger}
+import play.api.{ Configuration, Logger }
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsDatabase
-import uk.gov.hmrc.ups.scheduled.{Failed, RemoveOlderCollections, Succeeded}
+import uk.gov.hmrc.ups.scheduled.{ Failed, RemoveOlderCollections, Succeeded }
 import uk.gov.hmrc.ups.scheduling.Result
 
 import java.util.concurrent.TimeUnit
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import javax.inject.{ Inject, Singleton }
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration.FiniteDuration
 
 @Singleton
 class RemoveOlderCollectionsService @Inject()(
   configuration: Configuration,
   updatedPrintSuppressionsDatabase: UpdatedPrintSuppressionsDatabase
-)(implicit ec: ExecutionContext) extends RemoveOlderCollections {
+)(implicit ec: ExecutionContext)
+    extends RemoveOlderCollections {
   val logger: Logger = Logger(this.getClass)
 
   override def repository: UpdatedPrintSuppressionsDatabase = updatedPrintSuppressionsDatabase
-  
+
   val name: String = "removeOlderCollections"
-  
-  def execute: Future[Result] = {
+
+  def execute: Future[Result] =
     removeOlderThan(durationInDays).map { totals =>
       (totals.failures ++ totals.successes).foreach {
         case Succeeded(collectionName) =>
           logger.info(s"successfully removed collection $collectionName older than $durationInDays in $name job")
-  
+
         case Failed(collectionName, ex) =>
           val msg = s"attempted to removed collection $collectionName and failed in $name job"
           ex.fold(logger.error(msg)) {
@@ -56,7 +57,6 @@ class RemoveOlderCollectionsService @Inject()(
            |""".stripMargin
       Result(text)
     }
-  }
 
   private lazy val durationInDays = {
     val days = configuration

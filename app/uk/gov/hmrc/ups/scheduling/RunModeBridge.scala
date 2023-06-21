@@ -18,7 +18,7 @@ package uk.gov.hmrc.ups.scheduling
 
 import play.api.Configuration
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import scala.concurrent.duration._
 
 // $COVERAGE-OFF$
@@ -47,6 +47,6 @@ class RunModeBridge @Inject()(configuration: Configuration) {
     configuration
       .get[Duration](suffix)
       .toMillis
-  
+
 }
 // $COVERAGE-ON$

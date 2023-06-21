@@ -20,8 +20,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 import uk.gov.hmrc.ups.scheduling.Result
 
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import javax.inject.{ Inject, Singleton }
+import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class UpdatedPrintSuppressionService @Inject()(

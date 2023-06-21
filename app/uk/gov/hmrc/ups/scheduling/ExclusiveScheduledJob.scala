@@ -19,8 +19,8 @@ package uk.gov.hmrc.ups.scheduling
 import play.api.Logger
 
 import java.util.concurrent.Semaphore
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success, Try }
 
 trait ExclusiveScheduledJob extends ScheduledJob {
   private val logger: Logger = Logger(getClass)

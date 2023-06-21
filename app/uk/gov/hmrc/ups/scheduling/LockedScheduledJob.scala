@@ -17,10 +17,10 @@
 package uk.gov.hmrc.ups.scheduling
 
 import play.api.Logger
-import uk.gov.hmrc.mongo.lock.{LockRepository, LockService}
+import uk.gov.hmrc.mongo.lock.{ LockRepository, LockService }
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{ExecutionContext, Future, duration}
+import scala.concurrent.{ ExecutionContext, Future, duration }
 
 trait LockedScheduledJob extends ScheduledJob {
   private val logger: Logger = Logger(getClass)

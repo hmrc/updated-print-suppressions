@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.ups
 
-import com.google.inject.{AbstractModule, Provides, Singleton}
+import com.google.inject.{ AbstractModule, Provides, Singleton }
 import net.codingwell.scalaguice.ScalaModule
-import play.api.{Configuration, Logger}
+import play.api.{ Configuration, Logger }
 import play.api.libs.concurrent.AkkaGuiceSupport
-import uk.gov.hmrc.ups.scheduled.jobs.{RemoveOlderCollectionsJob, UpdatedPrintSuppressionJob}
+import uk.gov.hmrc.ups.scheduled.jobs.{ RemoveOlderCollectionsJob, UpdatedPrintSuppressionJob }
 import uk.gov.hmrc.ups.scheduling.ScheduledJob
 
 class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {

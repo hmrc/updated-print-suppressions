@@ -17,7 +17,7 @@
 package uk.gov.hmrc.ups.scheduling
 
 import scala.concurrent.duration.FiniteDuration
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 trait ScheduledJob extends SchedulingConfig {
   val name: String

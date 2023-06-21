@@ -16,14 +16,14 @@
 
 package uk.gov.hmrc.ups.scheduled.jobs
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 
 import play.api.Logger
 import uk.gov.hmrc.mongo.lock.LockRepository
-import uk.gov.hmrc.ups.scheduling.{LockedScheduledJob, Result, RunModeBridge}
+import uk.gov.hmrc.ups.scheduling.{ LockedScheduledJob, Result, RunModeBridge }
 import uk.gov.hmrc.ups.service.RemoveOlderCollectionsService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration.Duration
 
 // $COVERAGE-OFF$Disabling
@@ -31,7 +31,8 @@ import scala.concurrent.duration.Duration
 class RemoveOlderCollectionsJob @Inject()(
   removeOlderCollectionsService: RemoveOlderCollectionsService,
   lockRepository: LockRepository,
-  override val runModeBridge: RunModeBridge) extends LockedScheduledJob {
+  override val runModeBridge: RunModeBridge)
+    extends LockedScheduledJob {
 
   val logger: Logger = Logger(this.getClass)
 
@@ -45,7 +46,7 @@ class RemoveOlderCollectionsJob @Inject()(
     } else {
       Future(Result(s"$name job is not enabled"))
     }
-  
+
   override val releaseLockAfter: Duration = lockDuration.getOrElse(Duration("1 hour"))
   override val lockRepo: LockRepository = lockRepository
 }

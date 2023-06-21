@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.ups.scheduled.jobs
 
-import com.google.inject.{Inject, Singleton}
+import com.google.inject.{ Inject, Singleton }
 import play.api.Logger
 import uk.gov.hmrc.mongo.lock.LockRepository
-import uk.gov.hmrc.ups.scheduling.{LockedScheduledJob, Result, RunModeBridge}
+import uk.gov.hmrc.ups.scheduling.{ LockedScheduledJob, Result, RunModeBridge }
 import uk.gov.hmrc.ups.service.UpdatedPrintSuppressionService
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration.Duration
 
 // $COVERAGE-OFF$Disabling
@@ -35,7 +35,7 @@ class UpdatedPrintSuppressionJob @Inject()(
 
   val logger: Logger = Logger(this.getClass)
   val name: String = "updatedPrintSuppressions"
-  
+
   def executeInLock(implicit ec: ExecutionContext): Future[Result] = {
     val result = updatedPrintSuppressionService.execute
     result.foreach(r => logger.warn(r.message))
