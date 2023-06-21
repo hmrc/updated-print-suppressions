@@ -38,7 +38,7 @@ class RemoveOlderCollectionsService @Inject()(
 
   val name: String = "removeOlderCollections"
 
-  def execute: Future[Result] =
+  def execute: Future[Result] = {
     removeOlderThan(durationInDays).map { totals =>
       (totals.failures ++ totals.successes).foreach {
         case Succeeded(collectionName) =>
@@ -57,6 +57,7 @@ class RemoveOlderCollectionsService @Inject()(
            |""".stripMargin
       Result(text)
     }
+  }
 
   private lazy val durationInDays = {
     val days = configuration

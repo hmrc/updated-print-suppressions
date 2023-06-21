@@ -16,16 +16,13 @@
 
 package uk.gov.hmrc.ups.scheduling
 
-import scala.concurrent.duration.FiniteDuration
 import scala.concurrent.{ ExecutionContext, Future }
 
+// $COVERAGE-OFF$Disabling
 trait ScheduledJob extends SchedulingConfig {
   val name: String
   def execute(implicit ec: ExecutionContext): Future[Result]
 
   def configKey: String = name
-
-  def initialDelay: FiniteDuration
-
-  def interval: FiniteDuration
 }
+// $COVERAGE-ON$

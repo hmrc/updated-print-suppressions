@@ -23,6 +23,7 @@ import play.api.libs.concurrent.AkkaGuiceSupport
 import uk.gov.hmrc.ups.scheduled.jobs.{ RemoveOlderCollectionsJob, UpdatedPrintSuppressionJob }
 import uk.gov.hmrc.ups.scheduling.ScheduledJob
 
+// $COVERAGE-OFF$Disabling
 class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {
 
   private val logger: Logger = Logger(getClass)
@@ -46,3 +47,4 @@ class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {
       updatedPrintSuppressionJob
     )
 }
+// $COVERAGE-ON$
