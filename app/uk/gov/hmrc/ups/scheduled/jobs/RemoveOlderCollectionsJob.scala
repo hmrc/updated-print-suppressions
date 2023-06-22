@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,76 +16,38 @@
 
 package uk.gov.hmrc.ups.scheduled.jobs
 
-import akka.actor.{ Actor, Timers }
 import com.google.inject.{ Inject, Singleton }
 
-import java.util.concurrent.TimeUnit
-import play.api.{ Configuration, Logger }
-import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsDatabase
-import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob.{ PeriodicTick, PeriodicTimerKey }
-import uk.gov.hmrc.ups.scheduled.{ Failed, RemoveOlderCollections, Succeeded }
+import play.api.Logger
+import uk.gov.hmrc.mongo.lock.LockRepository
+import uk.gov.hmrc.ups.scheduling.{ LockedScheduledJob, Result, RunModeBridge }
+import uk.gov.hmrc.ups.service.RemoveOlderCollectionsService
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration.{ Duration, DurationLong, FiniteDuration }
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.duration.Duration
 
-object RemoveOlderCollectionsJob {
-  case object PeriodicTimerKey
-  case object PeriodicTick
-}
+// $COVERAGE-OFF$Disabling
 @Singleton
-class RemoveOlderCollectionsJob @Inject()(configuration: Configuration, updatedPrintSuppressionsDatabase: UpdatedPrintSuppressionsDatabase)
-    extends Actor with Timers with RemoveOlderCollections {
+class RemoveOlderCollectionsJob @Inject()(
+  removeOlderCollectionsService: RemoveOlderCollectionsService,
+  lockRepository: LockRepository,
+  override val runModeBridge: RunModeBridge)
+    extends LockedScheduledJob {
 
   val logger: Logger = Logger(this.getClass)
 
-  def name: String = "removeOlderCollections"
+  override val name: String = "removeOlderCollections"
 
-  def repository: UpdatedPrintSuppressionsDatabase = updatedPrintSuppressionsDatabase
-
-  private lazy val durationInDays = {
-    val days = configuration
-      .getOptional[Int](s"$name.durationInDays")
-      .getOrElse(throw new IllegalStateException(s"Config key $name.durationInDays missing"))
-    FiniteDuration(days, TimeUnit.DAYS)
-  }
-
-  override def preStart(): Unit = {
-
-    val initialDelay = Duration(configuration.getMillis(s"scheduling.$name.initialDelay"), TimeUnit.MILLISECONDS)
-    val interval = Duration(configuration.getMillis(s"scheduling.$name.interval"), TimeUnit.MILLISECONDS)
-
-    timers.startTimerWithFixedDelay(PeriodicTimerKey, PeriodicTick, initialDelay, interval)
-
-    logger.warn(s"$name job starting, initialDelay: $initialDelay, interval: $interval")
-    super.preStart()
-  }
-
-  override def receive: Receive = {
-    case PeriodicTick => {
-      removeOlderThan(durationInDays).map { totals =>
-        (totals.failures ++ totals.successes).foreach {
-          case Succeeded(collectionName) =>
-            logger.info(s"successfully removed collection $collectionName older than $durationInDays in $name job")
-
-          case Failed(collectionName, ex) =>
-            val msg = s"attempted to removed collection $collectionName and failed in $name job"
-            ex.fold(logger.error(msg)) {
-              logger.error(msg, _)
-            }
-        }
-        val text =
-          s"""Completed $name with:
-             |- failures on collections [${totals.failures.map(_.collectionName).mkString(",")}]
-             |- collections [${totals.successes.map(_.collectionName).sorted.mkString(",")}] successfully removed
-             |""".stripMargin
-        logger.warn(text)
-        Result(text)
-      }
+  override def executeInLock(implicit ec: ExecutionContext): Future[Result] =
+    if (taskEnabled) {
+      val result = removeOlderCollectionsService.execute
+      result.foreach(r => logger.warn(r.message))
+      result
+    } else {
+      Future(Result(s"$name job is not enabled"))
     }
-  }
 
-  override def postStop(): Unit = {
-    logger.warn(s"Job $name stopped")
-    super.postStop()
-  }
+  override val releaseLockAfter: Duration = lockDuration.getOrElse(Duration("1 hour"))
+  override val lockRepo: LockRepository = lockRepository
 }
+// $COVERAGE-ON$

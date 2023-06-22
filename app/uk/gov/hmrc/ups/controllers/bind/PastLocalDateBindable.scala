@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,14 +17,15 @@
 package uk.gov.hmrc.ups.controllers.bind
 
 import org.joda.time.LocalDate
-import play.api.Logger
 import play.api.mvc.QueryStringBindable
-import uk.gov.hmrc.time.DateConverter
 import uk.gov.hmrc.ups.model.PastLocalDate
+import uk.gov.hmrc.ups.utils.DateConverter
 
 import scala.util.Try
 
 case class PastLocalDateBindable(shouldValidatePastDate: Boolean) extends QueryStringBindable[PastLocalDate] {
+
+  import scala.language.postfixOps
 
   def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, PastLocalDate]] =
     params.get(key).flatMap(_.headOption).map { date: String =>
@@ -35,7 +36,7 @@ case class PastLocalDateBindable(shouldValidatePastDate: Boolean) extends QueryS
           case _                                                                => Left("updated-on parameter can only be used with dates in the past")
         }
       } recover {
-        case e: Exception => Left("updated-on parameter is in the wrong format. Should be (yyyy-MM-dd)")
+        case _: Exception => Left("updated-on parameter is in the wrong format. Should be (yyyy-MM-dd)")
       } get
     }
 

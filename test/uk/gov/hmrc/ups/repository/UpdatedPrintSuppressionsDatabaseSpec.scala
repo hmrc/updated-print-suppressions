@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,12 +17,14 @@
 package uk.gov.hmrc.ups.repository
 
 import org.joda.time.LocalDate
+//import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
 import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.test.MongoSupport
 
+import scala.annotation.nowarn
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -34,6 +36,7 @@ class UpdatedPrintSuppressionsDatabaseSpec extends PlaySpec with ScalaFutures wi
   private val upsCollectionName2 = UpdatedPrintSuppressions.repoNameTemplate(today.minusDays(1))
   private val counters = "counters"
 
+  @nowarn("msg=discarded non-Unit value")
   override def beforeAll(): Unit = {
     super.beforeAll()
     await(mongoComponent.database.drop().toFuture())
@@ -50,7 +53,7 @@ class UpdatedPrintSuppressionsDatabaseSpec extends PlaySpec with ScalaFutures wi
           )
         )
       )
-      updatedPrintSuppressionsDatabase.upsCollectionNames.futureValue must contain only (upsCollectionName1, upsCollectionName2)
+      updatedPrintSuppressionsDatabase.upsCollectionNames.futureValue must contain.only(upsCollectionName1, upsCollectionName2)
     }
   }
 
@@ -63,6 +66,6 @@ class UpdatedPrintSuppressionsDatabaseSpec extends PlaySpec with ScalaFutures wi
 
   override def afterAll(): Unit = {
     super.afterAll()
-    await(mongoComponent.database.drop().toFuture())
+    val _ = await(mongoComponent.database.drop().toFuture())
   }
 }

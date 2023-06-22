@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,11 +32,10 @@ import play.api.{ Application, Configuration }
 import uk.gov.hmrc.domain.{ Nino, SaUtr }
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.workitem.ProcessingStatus
-import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.connectors.{ EntityResolverConnector, PreferencesConnector }
 import uk.gov.hmrc.ups.model.{ Entity, EntityId, PrintPreference, PulledItem }
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
-import uk.gov.hmrc.ups.utils.Generate
+import uk.gov.hmrc.ups.utils.{ DateTimeUtils, Generate }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -61,14 +60,14 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
       reset(mockPreferencesConnector)
       when(mockEntityResolverConnector.getTaxIdentifiers(pulledItem.entityId))
         .thenReturn(Future.successful(Right(Some(entity))))
-      when(mockRepo.insert(any(), any())).thenReturn(Future.successful())
+      when(mockRepo.insert(any[PrintPreference], any[DateTime])).thenReturn(Future.successful(()))
       when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded))
         .thenReturn(Future.successful(OK))
 
       preferencesProcessorSpy.processUpdates(pulledItem).futureValue mustBe Succeeded(s"updated preference: $callbackUrl")
 
       verify(mockEntityResolverConnector).getTaxIdentifiers(pulledItem.entityId)
-      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any())
+      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any[DateTime])
       verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded)
     }
 
@@ -78,14 +77,14 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
 
       when(mockEntityResolverConnector.getTaxIdentifiers(pulledItem.entityId))
         .thenReturn(Future.successful(Right(Some(entity))))
-      when(mockRepo.insert(ArgumentMatchers.eq(optedOut), any())).thenReturn(Future.successful(()))
+      when(mockRepo.insert(ArgumentMatchers.eq(optedOut), any[DateTime])).thenReturn(Future.successful(()))
       when(mockPreferencesConnector.changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded))
         .thenReturn(Future.successful(OK))
 
       preferencesProcessorSpy.processUpdates(pulledItem.copy(paperless = false)).futureValue mustBe Succeeded(s"updated preference: $callbackUrl")
 
       verify(mockEntityResolverConnector).getTaxIdentifiers(pulledItem.entityId)
-      verify(mockRepo).insert(ArgumentMatchers.eq(optedOut), any())
+      verify(mockRepo).insert(ArgumentMatchers.eq(optedOut), any[DateTime])
       verify(mockPreferencesConnector).changeStatus(pulledItem.callbackUrl, ProcessingStatus.Succeeded)
     }
 
@@ -140,21 +139,21 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
 
     "be considered failed when the record is inserted into UPS repo and the status of the updated preference is not ok" in new TestCase {
       reset(mockPreferencesConnector)
-      when(mockRepo.insert(ArgumentMatchers.eq(printPreference), any())).thenReturn(Future.successful(()))
-      when(mockPreferencesConnector.changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Succeeded))(any()))
+      when(mockRepo.insert(ArgumentMatchers.eq(printPreference), any[DateTime])).thenReturn(Future.successful(()))
+      when(mockPreferencesConnector.changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Succeeded))(any[HeaderCarrier]))
         .thenReturn(Future.successful(BAD_REQUEST))
 
       preferencesProcessorSpy.insertAndUpdate(printPreference, callbackUrl, DateTime.now()).futureValue mustBe Failed(
         s"failed to update preference: url: $callbackUrl status: $BAD_REQUEST")
 
-      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any())
-      verify(mockPreferencesConnector).changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Succeeded))(any())
+      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any[DateTime])
+      verify(mockPreferencesConnector).changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Succeeded))(any[HeaderCarrier])
     }
 
     "be considered failed when the record cannot be inserted into the UPS repo" in new TestCase {
       reset(mockPreferencesConnector)
-      when(mockRepo.insert(ArgumentMatchers.eq(printPreference), any())).thenReturn(Future.failed(new RuntimeException()))
-      when(mockPreferencesConnector.changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Failed))(any()))
+      when(mockRepo.insert(ArgumentMatchers.eq(printPreference), any[DateTime])).thenReturn(Future.failed(new RuntimeException()))
+      when(mockPreferencesConnector.changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Failed))(any[HeaderCarrier]))
         .thenReturn(Future.successful(OK))
 
       preferencesProcessorSpy.insertAndUpdate(printPreference, callbackUrl, DateTime.now()).futureValue match {
@@ -163,8 +162,8 @@ class PreferencesProcessorSpec extends PlaySpec with ScalaFutures with MockitoSu
         case _ => fail("should never happen")
       }
 
-      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any())
-      verify(mockPreferencesConnector).changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Failed))(any())
+      verify(mockRepo).insert(ArgumentMatchers.eq(printPreference), any[DateTime])
+      verify(mockPreferencesConnector).changeStatus(ArgumentMatchers.eq(callbackUrl), ArgumentMatchers.eq(ProcessingStatus.Failed))(any[HeaderCarrier])
       verifyNoMoreInteractions(mockRepo)
     }
   }

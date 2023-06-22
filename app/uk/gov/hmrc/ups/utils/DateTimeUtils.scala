@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ups.model
+package uk.gov.hmrc.ups.utils
 
-case class Limit(value: Int)
+import org.joda.time._
 
-object Limit {
-  private val LimitValue = 20000
+trait DateTimeUtils {
+  def now: DateTime = DateTime.now.withZone(DateTimeZone.UTC)
 
-  val max = Limit(LimitValue)
+  def daysBetween(start: LocalDate, end: LocalDate): Int =
+    Days.daysBetween(start.toDateTimeAtStartOfDay(DateTimeZone.UTC), end.toDateTimeAtStartOfDay(DateTimeZone.UTC)).getDays
+
+  def isEqualOrAfter(date: LocalDate, laterDate: LocalDate): Boolean = date.isEqual(laterDate) || date.isBefore(laterDate)
 }
+
+object DateTimeUtils extends DateTimeUtils

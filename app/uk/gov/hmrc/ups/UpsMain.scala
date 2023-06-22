@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,19 @@
 package uk.gov.hmrc.ups
 
 import akka.actor.ActorSystem
+
 import javax.inject.{ Inject, Singleton }
 import play.api.Logger
 import play.api.inject.ApplicationLifecycle
 import play.api.Configuration
+import uk.gov.hmrc.ups.scheduling.ScheduledJob
 
+import scala.annotation.nowarn
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, lifecycle: ApplicationLifecycle)(implicit val ec: ExecutionContext) {
+class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, lifecycle: ApplicationLifecycle, scheduledJobs: Seq[ScheduledJob])(
+  implicit val ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
   lifecycle.addStopHook(() =>
@@ -33,7 +37,20 @@ class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, 
       actorSystem.terminate()
   })
 
-  val refreshInterval = configuration
+  scheduledJobs.foreach(startScheduleJob)
+
+  @nowarn("msg=discarded non-Unit value")
+  private def startScheduleJob(job: ScheduledJob)(implicit ec: ExecutionContext): Unit =
+    if (job.taskEnabled) {
+      logger.warn(s"Starting scheduled job $job")
+      actorSystem.scheduler.scheduleWithFixedDelay(job.initialDelay, job.interval) { () =>
+        job.execute
+      }
+    } else {
+      logger.warn(s"${job.name} will not run, taskEnabled is false")
+    }
+
+  val refreshInterval: Int = configuration
     .getMillis(s"microservice.metrics.gauges.interval")
     .toInt
 

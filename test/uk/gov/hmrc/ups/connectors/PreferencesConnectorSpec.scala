@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,11 @@ import play.api.Application
 import play.api.http.Status
 import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.json.JsValue
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpClient }
+import play.api.libs.json.{ JsValue, Writes }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpClient, HttpReads }
 import uk.gov.hmrc.mongo.workitem.ProcessingStatus
-import uk.gov.hmrc.time.DateTimeUtils
 import uk.gov.hmrc.ups.model.{ EntityId, PulledItem, WorkItemRequest }
-import uk.gov.hmrc.ups.utils.Generate
+import uk.gov.hmrc.ups.utils.{ DateTimeUtils, Generate }
 
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -51,30 +50,57 @@ class PreferencesConnectorSpec extends PlaySpec with ScalaFutures with MockitoSu
   "pull next work item from preferences" should {
     "return the next work item that was at todo status" in new TestCase {
       val pulledItem: PulledItem = PulledItem(randomEntityId, paperless = true, DateTimeUtils.now, "someUrl")
-      when(mockHttpClient.POST[WorkItemRequest, Option[PulledItem]](any(), any(), any())(any(), any(), any(), any()))
+      when(
+        mockHttpClient.POST[WorkItemRequest, Option[PulledItem]](any[String], any[WorkItemRequest], any[Seq[(String, String)]])(
+          any[Writes[WorkItemRequest]],
+          any[HttpReads[Option[PulledItem]]],
+          any[HeaderCarrier],
+          any[ExecutionContext]))
         .thenReturn(Future.successful(Some(pulledItem)))
 
       connector.pullWorkItem.futureValue must be(Some(pulledItem))
 
-      verify(mockHttpClient).POST[WorkItemRequest, Option[PulledItem]](any(), any(), any())(any(), any(), any(), any())
+      verify(mockHttpClient).POST[WorkItemRequest, Option[PulledItem]](any[String], any[WorkItemRequest], any[Seq[(String, String)]])(
+        any[Writes[WorkItemRequest]],
+        any[HttpReads[Option[PulledItem]]],
+        any[HeaderCarrier],
+        any[ExecutionContext])
     }
 
     "return None if there no work item" in new TestCase {
-      when(mockHttpClient.POST[WorkItemRequest, Option[PulledItem]](any(), any(), any())(any(), any(), any(), any()))
+      when(
+        mockHttpClient.POST[WorkItemRequest, Option[PulledItem]](any[String], any[WorkItemRequest], any[Seq[(String, String)]])(
+          any[Writes[WorkItemRequest]],
+          any[HttpReads[Option[PulledItem]]],
+          any[HeaderCarrier],
+          any[ExecutionContext]))
         .thenReturn(Future.successful(None))
 
       connector.pullWorkItem.futureValue must be(None)
 
-      verify(mockHttpClient).POST[WorkItemRequest, Option[PulledItem]](any(), any(), any())(any(), any(), any(), any())
+      verify(mockHttpClient).POST[WorkItemRequest, Option[PulledItem]](any[String], any[WorkItemRequest], any[Seq[(String, String)]])(
+        any[Writes[WorkItemRequest]],
+        any[HttpReads[Option[PulledItem]]],
+        any[HeaderCarrier],
+        any[ExecutionContext])
     }
 
     "return none on an unexpected response from preferences" in new TestCase {
-      when(mockHttpClient.POST[WorkItemRequest, Option[PulledItem]](any(), any(), any())(any(), any(), any(), any()))
+      when(
+        mockHttpClient.POST[WorkItemRequest, Option[PulledItem]](any[String], any[WorkItemRequest], any[Seq[(String, String)]])(
+          any[Writes[WorkItemRequest]],
+          any[HttpReads[Option[PulledItem]]],
+          any[HeaderCarrier],
+          any[ExecutionContext]))
         .thenReturn(Future.successful(None))
 
       connector.pullWorkItem.futureValue mustBe None
 
-      verify(mockHttpClient).POST[WorkItemRequest, Option[PulledItem]](any(), any(), any())(any(), any(), any(), any())
+      verify(mockHttpClient).POST[WorkItemRequest, Option[PulledItem]](any[String], any[WorkItemRequest], any[Seq[(String, String)]])(
+        any[Writes[WorkItemRequest]],
+        any[HttpReads[Option[PulledItem]]],
+        any[HeaderCarrier],
+        any[ExecutionContext])
     }
   }
 
@@ -82,12 +108,15 @@ class PreferencesConnectorSpec extends PlaySpec with ScalaFutures with MockitoSu
     "return OK if the succeeded status is updated successfully" in new TestCase {
       val callbackUrl = "serviceUrl/updated-print-suppression/entityId/status"
 
-      when(mockHttpClient.POST[JsValue, Int](any(), any(), any())(any(), any(), any(), any()))
+      when(
+        mockHttpClient.POST[JsValue, Int](any[String], any[JsValue], any[Seq[(String, String)]])(
+          any[Writes[JsValue]],
+          any[HttpReads[Int]],
+          any[HeaderCarrier],
+          any[ExecutionContext]))
         .thenReturn(Future.successful(Status.OK))
 
       connector.changeStatus(callbackUrl, ProcessingStatus.Succeeded).futureValue must be(Status.OK)
-
-      //verify(mockHttpClient).POST(any(),any(),any())
     }
   }
 

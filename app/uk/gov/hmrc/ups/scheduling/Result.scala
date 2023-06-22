@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ups.model
+package uk.gov.hmrc.ups.scheduling
 
-case class Limit(value: Int)
-
-object Limit {
-  private val LimitValue = 20000
-
-  val max = Limit(LimitValue)
-}
+case class Result(message: String)

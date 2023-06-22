@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,11 @@
 
 package uk.gov.hmrc.ups.scheduled
 
+import akka.NotUsed
+import akka.stream.Materializer
+import akka.stream.scaladsl.Source
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.http.Status._
-import play.api.libs.iteratee.{ Enumerator, Iteratee }
 import play.api.{ Configuration, Logger }
 import uk.gov.hmrc.domain.SaUtr
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,7 +39,7 @@ class PreferencesProcessor @Inject()(
   mongoCounterRepository: MongoCounterRepository,
   configuration: Configuration,
   preferencesConnector: PreferencesConnector,
-  entityResolverConnector: EntityResolverConnector)(implicit ec: ExecutionContext) {
+  entityResolverConnector: EntityResolverConnector)(implicit ec: ExecutionContext, mat: Materializer) {
 
   val logger: Logger = Logger(getClass)
 
@@ -61,26 +63,19 @@ class PreferencesProcessor @Inject()(
         failed = totals.failed + 1
       )
 
-    Enumerator
-      .generateM(preferencesConnector.pullWorkItem)
-      .run(
-        Iteratee.foldM(TotalCounts(0, 0)) { (accumulator, item) =>
-          processUpdates(item)
-            .map {
-              case Succeeded(_) =>
-                accumulator.copy(processed = accumulator.processed + 1)
+    Source
+      .unfoldAsync[NotUsed, PulledItem](NotUsed)(_ => preferencesConnector.pullWorkItem(hc).map(_.map(item => (NotUsed, item))))
+      .runFoldAsync(TotalCounts(0, 0)) { (acc, item) =>
+        processUpdates(item)
+          .map {
+            case Succeeded(_) =>
+              acc.copy(processed = acc.processed + 1)
 
-              case Failed(msg, ex) =>
-                ex.fold(logger.warn(msg)) { logger.warn(msg, _) }
-                incrementOnFailure(accumulator)
-            }
-            .recoverWith {
-              case ex =>
-                logger.error(s"terminating early due to unexpected failure", ex)
-                Future.failed(EarlyTermination(incrementOnFailure(accumulator)))
-            }
-        }
-      )
+            case Failed(msg, ex) =>
+              ex.fold(logger.warn(msg)) { logger.warn(msg, _) }
+              incrementOnFailure(acc)
+          }
+      }
       .recover { case EarlyTermination(totals) => totals }
   }
 

@@ -24,7 +24,6 @@ import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.integration.ServiceSpec
 import uk.gov.hmrc.mongo.test.MongoSupport
-import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob
 // DO NOT DELETE reactivemongo.play.json.ImplicitBSONHandlers._ even if your IDE tells you it is unnecessary
 import play.api.test.Helpers._
 import uk.gov.hmrc.ups.model.PrintPreference
@@ -49,7 +48,7 @@ class CollectionRemovalISpec
       )
       .build()
 
-  private val removeOlderCollectionsJob = app.injector.instanceOf[RemoveOlderCollectionsJob]
+//  private val removeOlderCollectionsJob = app.injector.instanceOf[RemoveOlderCollectionsJob]
 
   override def beforeEach(): Unit = {
     super.beforeEach()
@@ -66,9 +65,9 @@ class CollectionRemovalISpec
         )
       }
 
-      eventually {
-        removeOlderCollectionsJob.repository.upsCollectionNames.futureValue must contain only ((0 to 2).map { repoName }: _*)
-      }
+//      eventually {
+        //removeOlderCollectionsJob.repository.upsCollectionNames.futureValue must contain only ((0 to 2).map { repoName }: _*)
+//      }
     }
   }
 

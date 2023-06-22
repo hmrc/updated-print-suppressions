@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ import play.api.inject.bind
 import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.libs.json.Json
 import uk.gov.hmrc.domain.{ Nino, SaUtr }
-import uk.gov.hmrc.http.{ HeaderCarrier, HttpClient, HttpResponse }
+import uk.gov.hmrc.http.{ HeaderCarrier, HttpClient, HttpReads, HttpResponse }
 import uk.gov.hmrc.ups.model.{ Entity, EntityId }
 import uk.gov.hmrc.ups.utils.Generate
 
@@ -52,23 +52,35 @@ class EntityResolverConnectorSpec
 
   "calling entity resolver get entity endpoint" should {
     "return an entity matching the given entityId" in new TestCase {
-      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
-        .thenReturn(Future.successful(HttpResponse(Status.OK, Some(Json.toJson(entity)))))
+      when(
+        mockHttpClient.GET[HttpResponse](any[String], any[Seq[(String, String)]], any[Seq[(String, String)]])(
+          any[HttpReads[HttpResponse]],
+          any[HeaderCarrier],
+          any[ExecutionContext]))
+        .thenReturn(Future.successful(HttpResponse.apply(Status.OK, Json.toJson(entity).toString())))
 
       connector.getTaxIdentifiers(randomEntityId).futureValue must be(Right(Some(entity)))
     }
 
     "return None if no entry matching entityId" in new TestCase {
-      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
-        .thenReturn(Future.successful(HttpResponse(Status.NOT_FOUND)))
+      when(
+        mockHttpClient.GET[HttpResponse](any[String], any[Seq[(String, String)]], any[Seq[(String, String)]])(
+          any[HttpReads[HttpResponse]],
+          any[HeaderCarrier],
+          any[ExecutionContext]))
+        .thenReturn(Future.successful(HttpResponse(Status.NOT_FOUND, "")))
 
       connector.getTaxIdentifiers(randomEntityId).futureValue must be(Right(None))
     }
 
     "handle unexpected response from preferences" in new TestCase {
       val expectedStatus: Int = Status.INTERNAL_SERVER_ERROR
-      when(mockHttpClient.GET[HttpResponse](any(), any(), any())(any(), any(), any()))
-        .thenReturn(Future.successful(HttpResponse(expectedStatus)))
+      when(
+        mockHttpClient.GET[HttpResponse](any[String], any[Seq[(String, String)]], any[Seq[(String, String)]])(
+          any[HttpReads[HttpResponse]],
+          any[HeaderCarrier],
+          any[ExecutionContext]))
+        .thenReturn(Future.successful(HttpResponse(expectedStatus, "")))
 
       connector.getTaxIdentifiers(randomEntityId).futureValue must be(Left(expectedStatus))
     }

@@ -14,22 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ups.repository
+package uk.gov.hmrc.ups.service
 
-import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
+import uk.gov.hmrc.ups.scheduling.Result
 
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class UpdatedPrintSuppressionsDatabase @Inject()(mongoComponent: MongoComponent) {
+class UpdatedPrintSuppressionService @Inject()(
+  preferencesProcessor: PreferencesProcessor
+)(implicit val ec: ExecutionContext) {
 
-  def dropCollection(collectionName: String)(implicit ec: ExecutionContext): Future[Unit] =
-    mongoComponent.database.getCollection(collectionName).drop().toFuture().map(_ => ())
-
-  private def listCollectionNames(predicate: String => Boolean)(implicit ec: ExecutionContext): Future[List[String]] =
-    mongoComponent.database.listCollectionNames().toFuture().map(_.filter(predicate).toList)
-
-  def upsCollectionNames(implicit ec: ExecutionContext): Future[List[String]] =
-    listCollectionNames(_.startsWith("updated"))
+  def execute: Future[Result] =
+    preferencesProcessor.run(HeaderCarrier()).map { totals =>
+      Result(
+        s"UpdatedPrintSuppressions: ${totals.processed} items processed with ${totals.failed} failures"
+      )
+    }
 }

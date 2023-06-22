@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.joda.time.{ DateTime, LocalDate }
 import org.mongodb.scala.MongoWriteException
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model._
+import org.mongodb.scala.result.UpdateResult
 import play.api.Logger
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
@@ -27,7 +28,6 @@ import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.updatedAtAsJson
 
 import javax.inject.{ Inject, Singleton }
-import scala.collection.Seq
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
@@ -37,7 +37,7 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
       mongoComponent,
       UpdatedPrintSuppressions.repoNameTemplate(date),
       UpdatedPrintSuppressions.formats,
-      Seq(
+      List(
         IndexModel(
           Indexes.ascending("counter"),
           IndexOptions()
@@ -52,7 +52,6 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
             .sparse(false))
       )
     ) {
-
   private[this] val logger = Logger(getClass)
   private[this] val counterRepoDate = UpdatedPrintSuppressions.toString(date)
 
@@ -62,39 +61,54 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
     e.map(_.map(ups => ups.printPreference).toList)
   }
 
+  private def updateOnInsert(
+    printPreference: PrintPreference,
+    ups: UpdatedPrintSuppressions,
+    updatedAt: DateTime
+  ): Future[UpdateResult] = {
+    val updatedAtSelector = Filters.lte("updatedAt", Codecs.toBson(updatedAtAsJson(updatedAt)))
+
+    collection
+      .updateOne(
+        Filters.and(Filters.equal("_id", ups._id), updatedAtSelector),
+        Updates.combine(
+          Updates.set("printPreference", Codecs.toBson(printPreference)),
+          Updates.set("updatedAt", Codecs.toBson(updatedAtAsJson(updatedAt)))
+        )
+      )
+      .toFuture()
+  }
+
+  private def insertNew(printPreference: PrintPreference, updatedAt: DateTime): Future[Unit] =
+    counterRepo
+      .next(counterRepoDate)
+      .flatMap { counter =>
+        collection
+          .insertOne(UpdatedPrintSuppressions(new ObjectId(), counter, printPreference, updatedAt))
+          .toSingle()
+          .toFuture()
+      }
+      .map(_ => ())
+      .recover {
+        case e: MongoWriteException if e.getError.getCode == 11000 =>
+          logger.warn(s"failed to insert print preference $printPreference updated at ${updatedAt.getMillis}", e)
+      }
+
   def insert(printPreference: PrintPreference, updatedAt: DateTime): Future[Unit] = {
     val selector = Filters.and(
       Filters.equal("printPreference.id", printPreference.id),
       Filters.equal("printPreference.idType", printPreference.idType)
     )
-    val updatedAtSelector = Filters.lte("updatedAt", Codecs.toBson(updatedAtAsJson(updatedAt)))
 
     collection
       .find[UpdatedPrintSuppressions](selector)
       .first()
       .toFuture()
-      .map(Option(_) match {
-        case Some(ups) =>
-          collection
-            .updateOne(
-              Filters.and(Filters.equal("_id", ups._id), updatedAtSelector),
-              Seq(Updates.set("printPreference", Codecs.toBson(printPreference)), Updates.set("updatedAt", Codecs.toBson(updatedAtAsJson(updatedAt))))
-            )
-            .toFuture()
-        case None =>
-          counterRepo
-            .next(counterRepoDate)
-            .flatMap { counter =>
-              collection
-                .insertOne(UpdatedPrintSuppressions(new ObjectId(), counter, printPreference, updatedAt))
-                .toFuture()
-            }
-            .recover {
-              case e: MongoWriteException if e.getError.getCode == 11000 =>
-                logger.warn(s"failed to insert print preference $printPreference updated at ${updatedAt.getMillis}", e)
-            }
+      .flatMap(Option(_) match {
+        case Some(ups) => updateOnInsert(printPreference, ups, updatedAt)
+        case None      => insertNew(printPreference, updatedAt)
       })
-      .map(_ => ())
+      .map[Unit](_ => ())
   }
 
   def count(): Future[Long] = collection.countDocuments().toFuture()

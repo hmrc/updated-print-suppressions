@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext
-import scala.language.reflectiveCalls
 
 class MongoCounterRepositorySpec
     extends PlaySpec with DefaultPlayMongoRepositorySupport[Counter] with BeforeAndAfterEach with ScalaFutures with IntegrationPatience
@@ -33,7 +32,9 @@ class MongoCounterRepositorySpec
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
-  override protected def repository = new MongoCounterRepository(mongoComponent)
+  override protected def checkTtlIndex: Boolean = false
+
+  override protected val repository = new MongoCounterRepository(mongoComponent)
 
   override def beforeEach(): Unit =
     await(repository.collection.deleteMany(Filters.empty()).toFuture().map(_ => ()))

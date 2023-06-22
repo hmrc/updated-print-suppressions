@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ups.model
+package uk.gov.hmrc.ups.scheduling
 
-case class Limit(value: Int)
+import scala.concurrent.{ ExecutionContext, Future }
 
-object Limit {
-  private val LimitValue = 20000
+// $COVERAGE-OFF$Disabling
+trait ScheduledJob extends SchedulingConfig {
+  val name: String
+  def execute(implicit ec: ExecutionContext): Future[Result]
 
-  val max = Limit(LimitValue)
+  def configKey: String = name
 }
+// $COVERAGE-ON$

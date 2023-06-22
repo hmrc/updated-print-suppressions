@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,9 @@ import uk.gov.hmrc.ups.controllers.bind.PastLocalDateBindable
 import uk.gov.hmrc.ups.model.{ Limit, PastLocalDate }
 
 import javax.inject.{ Inject, Singleton }
-import scala.concurrent.ExecutionContext
 
 @Singleton
-class UpdatedPrintSuppressionsController @Inject()(updatedOn: UpdatedOn, cc: ControllerComponents)(implicit ec: ExecutionContext)
-    extends BackendController(cc) {
+class UpdatedPrintSuppressionsController @Inject()(updatedOn: UpdatedOn, cc: ControllerComponents) extends BackendController(cc) {
 
   val localDateBinder: QueryStringBindable[PastLocalDate] = PastLocalDateBindable(true)
 

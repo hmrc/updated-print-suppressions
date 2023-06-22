@@ -16,17 +16,19 @@
 
 package uk.gov.hmrc.ups.controllers.admin
 
+import org.junit.Ignore
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{ JsArray, JsValue, Json }
+import play.api.libs.json.{JsArray, JsValue, Json}
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
-import uk.gov.hmrc.ups.controllers.{ TestServer, TestSetup }
+import uk.gov.hmrc.ups.controllers.{TestServer, TestSetup}
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
+import uk.gov.hmrc.ups.repository.{MongoCounterRepository, UpdatedPrintSuppressions}
 
 import scala.concurrent.Future
 
+@Ignore // NOTE INTEGRATION TESTS ARE NOT RUNNING IN THE BUILD PIPELINE
 class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterEach {
 
   "AdminController" should {

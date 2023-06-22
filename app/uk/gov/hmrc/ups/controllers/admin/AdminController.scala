@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,7 @@ class AdminController @Inject()(updatedOn: UpdatedOn, cc: ControllerComponents, 
     }
   }
 
-  def processPrintSuppressions(): Action[AnyContent] = Action.async { implicit request =>
+  def processPrintSuppressions(): Action[AnyContent] = Action.async {
     preferencesProcessor.run(HeaderCarrier()).map { totals =>
       Ok(
         s"UpdatedPrintSuppressions: ${totals.processed} item(s) processed with ${totals.failed} failure(s)"
