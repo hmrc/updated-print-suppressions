@@ -123,5 +123,4 @@ class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer 
       await(upsCollection.countDocuments().toFuture()) mustBe 1
     }
   }
-  override def externalServices: Seq[String] = Seq()
 }

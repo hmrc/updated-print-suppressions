@@ -18,22 +18,50 @@ package uk.gov.hmrc.ups.controllers
 
 import com.codahale.metrics.SharedMetricRegistries
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.WsScalaTestClient
-import play.api.Application
+import org.scalatestplus.play.guice.GuiceOneServerPerSuite
+import play.api.{Application, Environment, Mode}
 import play.api.inject.guice.GuiceApplicationBuilder
-import play.api.libs.ws.{ WSClient, WSRequest }
-import uk.gov.hmrc.integration.ServiceSpec
+import play.api.libs.ws.{WSClient, WSRequest}
 import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.repository.MongoCounterRepository
 
-trait TestServer extends AnyWordSpec with ServiceSpec with WsScalaTestClient with BeforeAndAfterEach with MongoSupport {
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
-  override def fakeApplication(): Application =
-    new GuiceApplicationBuilder()
-      .configure(s"mongodb.uri" -> s"mongodb://localhost:27017/$databaseName", "play.http.router" -> "testOnlyDoNotUseInAppConf.Routes", "metrics.jvm" -> false)
+trait TestServer
+  extends AnyWordSpec
+  with ScalaFutures
+  with IntegrationPatience
+  with GuiceOneServerPerSuite
+  with WsScalaTestClient
+  with BeforeAndAfterEach
+  with MongoSupport {
+
+  override def fakeApplication(): Application = {
+    new GuiceApplicationBuilder(environment = Environment.simple(mode = applicationMode.getOrElse(Mode.Test)))
+      .configure(
+        s"mongodb.uri"     -> serviceMongoUri,
+        "play.http.router" -> "testOnlyDoNotUseInAppConf.Routes",
+        "metrics.jvm"      -> false)
       .build()
+  }
 
+  def serviceMongoUri =
+    s"mongodb://localhost:27017/${testId.toString}"
+    
+  def testName: String =
+    getClass.getSimpleName
+
+  // If applicationMode is set, default to Mode.Dev, to preserve earlier behaviour
+  def applicationMode: Option[Mode] =
+    Some(Mode.Dev)
+
+  protected val testId =
+    TestId(testName)
+    
   implicit val wsClient: WSClient = app.injector.instanceOf[WSClient]
 
   val testCounterRepository = app.injector.instanceOf[MongoCounterRepository]
@@ -41,7 +69,11 @@ trait TestServer extends AnyWordSpec with ServiceSpec with WsScalaTestClient wit
   override def beforeEach(): Unit =
     SharedMetricRegistries.clear()
 
-  def preferencesSaIndividualPrintSuppression(updatedOn: Option[String], offset: Option[String], limit: Option[String], isAdmin: Boolean = false) = {
+  def preferencesSaIndividualPrintSuppression(
+    updatedOn: Option[String],
+    offset: Option[String],
+    limit: Option[String],
+    isAdmin: Boolean = false): WSRequest = {
 
     val queryString = Seq(
       updatedOn.map(value => "updated-on" -> value),
@@ -57,8 +89,14 @@ trait TestServer extends AnyWordSpec with ServiceSpec with WsScalaTestClient wit
   }
 
   def get(url: WSRequest) = url.get().futureValue
+  
+}
 
-  override def externalServices: Seq[String] = Seq(
-    "preferences"
-  )
+case class TestId(testName: String) {
+
+  val runId =
+    DateTimeFormatter.ofPattern("HHmmssSSS").format(LocalDateTime.now())
+
+  override val toString =
+    s"${testName.toLowerCase.take(30)}-$runId"
 }
