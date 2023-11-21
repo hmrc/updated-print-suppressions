@@ -38,8 +38,6 @@ class UpdatedPrintSuppressionsRepositorySpec
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
-//  override protected def checkTtlIndex: Boolean = false
-
   private val TODAY: LocalDate = new LocalDate()
   private val counterRepoStub = new MongoCounterRepository(mongoComponent) {
     var counter: AtomicInteger = new AtomicInteger(-1)
@@ -59,7 +57,6 @@ class UpdatedPrintSuppressionsRepositorySpec
   override def beforeEach(): Unit = {
     counterRepoStub.reset()
     repository.collection.deleteMany(Filters.empty()).toFuture().futureValue
-//    repository.collection.drop().toFuture().futureValue
   }
 
   def toCounterAndPreference(ups: UpdatedPrintSuppressions): (Int, PrintPreference, DateTime) =
