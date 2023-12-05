@@ -50,40 +50,11 @@ class LockedScheduledJobSpec
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(500, Millis), interval = Span(500, Millis))
 
-//  class SimpleJob(val name: String) extends LockedScheduledJob {
-//
-//    val mockRunModeBridge = mock[RunModeBridge]
-//
-//    override val releaseLockAfter: Duration = Duration(5, TimeUnit.SECONDS)
-//
-//    val start = new CountDownLatch(1)
-//
-//    override val lockRepo: LockRepository = app.injector.instanceOf[MongoLockRepository] //  new MongoLockRepository()(ec)
-//
-//    def continueExecution(): Unit = start.countDown()
-//
-//    val executionCount = new AtomicInteger(0)
-//
-//    def executions: Int = executionCount.get()
-//
-//    override def executeInLock(implicit ec: ExecutionContext): Future[Result] =
-//      Future.successful {
-//        start.await(10, TimeUnit.SECONDS)
-//        Result(executionCount.incrementAndGet().toString)
-//      }
-//
-//    override lazy val initialDelay: FiniteDuration = FiniteDuration(1, TimeUnit.SECONDS)
-//
-//    override lazy val interval: FiniteDuration = FiniteDuration(1, TimeUnit.SECONDS)
-//
-//    override def runModeBridge: RunModeBridge = mockRunModeBridge
-//  }
-
   trait Setup {
     val mockService = mock[UpdatedPrintSuppressionService]
     val mockLockRepository = mock[MongoLockRepository]
     val mockRunModeBridge = mock[RunModeBridge]
-//    when(mockRunModeBridge.scheduledJobConfig(*)).thenReturn(ScheduledJobConfig(10.seconds, 10.seconds, true))
+
     when(mockRunModeBridge.getOptionalMillisForScheduling(any[String], matches("lockDuration")))
       .thenReturn(Option(Duration(1, TimeUnit.SECONDS)))
 
