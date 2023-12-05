@@ -23,7 +23,7 @@ import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-//import uk.gov.hmrc.integration.ServiceSpec
+
 import uk.gov.hmrc.mongo.test.MongoSupport
 // DO NOT DELETE reactivemongo.play.json.ImplicitBSONHandlers._ even if your IDE tells you it is unnecessary
 import play.api.test.Helpers._
@@ -54,9 +54,7 @@ class CollectionRemovalISpec
         s"Test.scheduling.removeOlderCollections.interval"     -> "24 hours"
       )
       .build()
-
-//  private val removeOlderCollectionsJob = app.injector.instanceOf[RemoveOlderCollectionsJob]
-
+  
   override def beforeEach(): Unit = {
     super.beforeEach()
     dropDatabase()
@@ -71,10 +69,6 @@ class CollectionRemovalISpec
           }
         )
       }
-
-//      eventually {
-        //removeOlderCollectionsJob.repository.upsCollectionNames.futureValue must contain only ((0 to 2).map { repoName }: _*)
-//      }
     }
   }
 

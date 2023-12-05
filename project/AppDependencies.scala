@@ -35,7 +35,8 @@ object AppDependencies {
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-work-item-repo-play-28" % hmrcMongo,
     "uk.gov.hmrc"       %% "domain"                            % "8.3.0-play-28",
     "net.codingwell"    %% "scala-guice"                       % "5.1.1",
-    "com.typesafe.play" %% "play-json-joda"                    % "2.9.4"
+    "com.typesafe.play" %% "play-json-joda"                    % "2.9.4",
+    "org.typelevel"     %% "cats-core"                         % "2.9.0"
   )
 
   val test = Set(

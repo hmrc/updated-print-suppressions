@@ -1,2 +1,2 @@
 GET     /preferences/sa/individual/print-suppression     uk.gov.hmrc.ups.controllers.UpdatedPrintSuppressionsController.list(offset: Option[Int], limit: Option[Limit])
-
+POST    /preferences/notify-subscriber                   uk.gov.hmrc.ups.controllers.UpdatedPrintSuppressionsController.notifySubscriber()

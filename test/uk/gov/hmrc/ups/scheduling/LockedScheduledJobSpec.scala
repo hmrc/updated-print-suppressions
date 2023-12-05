@@ -16,26 +16,30 @@
 
 package uk.gov.hmrc.ups.scheduling
 
+import org.mockito.ArgumentMatchers._
+import org.mockito.Mockito._
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.time.{ Millis, Span }
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.mockito.MockitoSugar.mock
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-import uk.gov.hmrc.mongo.lock.{ LockRepository, MongoLockRepository }
+import uk.gov.hmrc.mongo.lock.MongoLockRepository
 import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.ups.scheduled.jobs.UpdatedPrintSuppressionJob
+import uk.gov.hmrc.ups.service.UpdatedPrintSuppressionService
 
-import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.{ CountDownLatch, Executors, TimeUnit }
+import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
-import scala.concurrent.{ Await, ExecutionContext, Future }
+import scala.concurrent.{ Await, Future }
 import scala.util.Try
 
-class LockedScheduledJobSpec extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerTest with BeforeAndAfterAll with BeforeAndAfterEach {
+class LockedScheduledJobSpec
+    extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerTest with BeforeAndAfterAll with BeforeAndAfterEach with MockitoSugar {
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
@@ -44,36 +48,23 @@ class LockedScheduledJobSpec extends AnyWordSpec with Matchers with ScalaFutures
 
   val mongoComponent: MongoComponent = MongoComponent("mongodb://localhost:27017/test-play-schedule")
 
-//  implicit val ec = Implicits.global
-
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(500, Millis), interval = Span(500, Millis))
 
-  class SimpleJob(val name: String) extends LockedScheduledJob {
+  trait Setup {
+    val mockService = mock[UpdatedPrintSuppressionService]
+    val mockLockRepository = mock[MongoLockRepository]
     val mockRunModeBridge = mock[RunModeBridge]
 
-    override val releaseLockAfter: Duration = Duration(5, TimeUnit.SECONDS)
+    when(mockRunModeBridge.getOptionalMillisForScheduling(any[String], matches("lockDuration")))
+      .thenReturn(Option(Duration(1, TimeUnit.SECONDS)))
 
-    val start = new CountDownLatch(1)
+    when(mockRunModeBridge.getMillisForScheduling(any[String], matches("initialDelay")))
+      .thenReturn(Duration(0, TimeUnit.SECONDS))
 
-    override val lockRepo: LockRepository = app.injector.instanceOf[MongoLockRepository] //  new MongoLockRepository()(ec)
+    when(mockRunModeBridge.getMillisForScheduling(any[String], matches("interval")))
+      .thenReturn(Duration(0, TimeUnit.SECONDS))
 
-    def continueExecution(): Unit = start.countDown()
-
-    val executionCount = new AtomicInteger(0)
-
-    def executions: Int = executionCount.get()
-
-    override def executeInLock(implicit ec: ExecutionContext): Future[Result] =
-      Future {
-        start.await(1, TimeUnit.MINUTES)
-        Result(executionCount.incrementAndGet().toString)
-      }(ExecutionContext.fromExecutor(Executors.newFixedThreadPool(5)))
-
-    override lazy val initialDelay: FiniteDuration = FiniteDuration(1, TimeUnit.SECONDS)
-
-    override lazy val interval: FiniteDuration = FiniteDuration(1, TimeUnit.SECONDS)
-
-    override def runModeBridge: RunModeBridge = mockRunModeBridge
+    val job = new UpdatedPrintSuppressionJob(mockLockRepository, mockService, mockRunModeBridge)
   }
 
   override def afterAll(): Unit =
@@ -82,27 +73,28 @@ class LockedScheduledJobSpec extends AnyWordSpec with Matchers with ScalaFutures
 
   "ExclusiveScheduledJob" should {
 
-    "let job run in sequence" in {
-      val job = new SimpleJob("job1")
-      job.continueExecution()
-      Await.result(job.execute, 1.minute).message shouldBe "Job with job1 run and completed with result 1"
-      Await.result(job.execute, 1.minute).message shouldBe "Job with job1 run and completed with result 2"
+    "let job run in sequence" in new Setup {
+      when(mockLockRepository.takeLock(any[String], any[String], any[Duration])).thenReturn(Future.successful(true))
+      when(mockLockRepository.releaseLock(any[String], any[String])).thenReturn(Future.successful(()))
+      when(mockService.execute).thenReturn(Future.successful(Result("")))
+
+      val result1 = Await.result(job.execute, 1.minute)
+      result1.message should include("updatedPrintSuppressions run and completed with result")
+
+      val result2 = Await.result(job.execute, 1.minute)
+      result2.message should include("updatedPrintSuppressions run and completed with result")
     }
 
-    "not allow job to run in parallel" in {
-      val job = new SimpleJob("job2")
-
-      val pausedExecution = job.execute
-      pausedExecution.isCompleted shouldBe false
-      job.execute.futureValue.message shouldBe "Job with job2 cannot aquire mongo lock, not running"
-      job.continueExecution()
-      pausedExecution.futureValue.message shouldBe "Job with job2 run and completed with result 1"
+    "not allow job to run in parallel" in new Setup {
+      when(mockLockRepository.takeLock(any[String], any[String], any[Duration])).thenReturn(Future.successful(false))
+      val result1 = Await.result(job.execute, 1.minute)
+      result1.message should include("Job with updatedPrintSuppressions cannot aquire mongo lock, not running")
     }
 
-    "should tolerate exceptions in execution" in {
-      val job = new SimpleJob("job3") {
-        override def executeInLock(implicit ec: ExecutionContext): Future[Result] = throw new RuntimeException
-      }
+    "should tolerate exceptions in execution" in new Setup {
+      when(mockLockRepository.takeLock(any[String], any[String], any[Duration])).thenReturn(Future.successful(true))
+      when(mockLockRepository.releaseLock(any[String], any[String])).thenReturn(Future.successful(()))
+      when(mockService.execute).thenThrow(new RuntimeException("whatever"))
 
       Try {
         job.execute.futureValue
