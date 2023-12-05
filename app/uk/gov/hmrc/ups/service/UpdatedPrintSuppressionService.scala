@@ -43,7 +43,7 @@ class UpdatedPrintSuppressionService @Inject()(
       .getOptional[Seq[String]]("form-types.saAll")
       .getOrElse(throw new RuntimeException(s"configuration property form-types is not set"))
       .toList
-  
+
   def process(request: NotifySubscriberRequest): EitherT[Future, Throwable, Unit] =
     for {
       pp <- createPrintPreference(request)
@@ -79,11 +79,11 @@ class UpdatedPrintSuppressionService @Inject()(
           .map(a => Right(a))
           .recover(ex => Left(ex))
       } match {
-        case Success(v) => v
+        case Success(v)  => v
         case Failure(ex) => Future.successful(Left(ex))
       }
     }
-    
+
   private def getUtrValue(request: NotifySubscriberRequest) =
     request.taxIds.get("sautr") match {
       case Some(utr) => SaUtr(utr).value
