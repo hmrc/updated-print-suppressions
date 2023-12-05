@@ -16,13 +16,12 @@
 
 package uk.gov.hmrc.ups.scheduling
 
-
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.time.{Millis, Span}
+import org.scalatest.time.{ Millis, Span }
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.guice.GuiceOneAppPerTest
@@ -36,17 +35,11 @@ import uk.gov.hmrc.ups.service.UpdatedPrintSuppressionService
 import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits._
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 import scala.util.Try
 
 class LockedScheduledJobSpec
-  extends AnyWordSpec
-    with Matchers
-    with ScalaFutures
-    with GuiceOneAppPerTest
-    with BeforeAndAfterAll
-    with BeforeAndAfterEach
-    with MockitoSugar {
+    extends AnyWordSpec with Matchers with ScalaFutures with GuiceOneAppPerTest with BeforeAndAfterAll with BeforeAndAfterEach with MockitoSugar {
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
@@ -54,7 +47,6 @@ class LockedScheduledJobSpec
       .build()
 
   val mongoComponent: MongoComponent = MongoComponent("mongodb://localhost:27017/test-play-schedule")
-  
 
   override implicit def patienceConfig: PatienceConfig = PatienceConfig(timeout = Span(500, Millis), interval = Span(500, Millis))
 
@@ -88,9 +80,9 @@ class LockedScheduledJobSpec
 //  }
 
   trait Setup {
-    val mockService        = mock[UpdatedPrintSuppressionService]
+    val mockService = mock[UpdatedPrintSuppressionService]
     val mockLockRepository = mock[MongoLockRepository]
-    val mockRunModeBridge  = mock[RunModeBridge]
+    val mockRunModeBridge = mock[RunModeBridge]
 //    when(mockRunModeBridge.scheduledJobConfig(*)).thenReturn(ScheduledJobConfig(10.seconds, 10.seconds, true))
     when(mockRunModeBridge.getOptionalMillisForScheduling(any[String], matches("lockDuration")))
       .thenReturn(Option(Duration(1, TimeUnit.SECONDS)))
@@ -100,26 +92,24 @@ class LockedScheduledJobSpec
 
     when(mockRunModeBridge.getMillisForScheduling(any[String], matches("interval")))
       .thenReturn(Duration(0, TimeUnit.SECONDS))
-    
-    
+
     val job = new UpdatedPrintSuppressionJob(mockLockRepository, mockService, mockRunModeBridge)
   }
-  
+
   override def afterAll(): Unit =
     // shutdown mongo system
     mongoComponent.client.close()
 
-  
   "ExclusiveScheduledJob" should {
 
     "let job run in sequence" in new Setup {
       when(mockLockRepository.takeLock(any[String], any[String], any[Duration])).thenReturn(Future.successful(true))
       when(mockLockRepository.releaseLock(any[String], any[String])).thenReturn(Future.successful(()))
       when(mockService.execute).thenReturn(Future.successful(Result("")))
-      
+
       val result1 = Await.result(job.execute, 1.minute)
       result1.message should include("updatedPrintSuppressions run and completed with result")
-      
+
       val result2 = Await.result(job.execute, 1.minute)
       result2.message should include("updatedPrintSuppressions run and completed with result")
     }

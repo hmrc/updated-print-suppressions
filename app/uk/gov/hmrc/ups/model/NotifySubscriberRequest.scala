@@ -36,9 +36,9 @@ object MessageDeliveryFormat {
 }
 
 case class NotifySubscriberRequest(
-    changedValue: MessageDeliveryFormat,
-    updatedAt: Instant,
-    taxIds: Map[String, String]
+  changedValue: MessageDeliveryFormat,
+  updatedAt: Instant,
+  taxIds: Map[String, String]
 )
 
 object NotifySubscriberRequest {

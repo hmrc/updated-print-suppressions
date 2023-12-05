@@ -20,20 +20,19 @@ import play.api.libs.json.JsValue
 import play.api.mvc._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.ups.controllers.bind.PastLocalDateBindable
-import uk.gov.hmrc.ups.model.{Limit, NotifySubscriberRequest, PastLocalDate}
-import uk.gov.hmrc.ups.service.{SaUtrNotFoundException, UpdatedPrintSuppressionService}
+import uk.gov.hmrc.ups.model.{ Limit, NotifySubscriberRequest, PastLocalDate }
+import uk.gov.hmrc.ups.service.{ SaUtrNotFoundException, UpdatedPrintSuppressionService }
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.{ Inject, Singleton }
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class UpdatedPrintSuppressionsController @Inject()
-(
+class UpdatedPrintSuppressionsController @Inject()(
   updatedOn: UpdatedOn,
   cc: ControllerComponents,
   updatedPrintSuppressionService: UpdatedPrintSuppressionService
 )(implicit ec: ExecutionContext)
-  extends BackendController(cc) {
+    extends BackendController(cc) {
 
   val localDateBinder: QueryStringBindable[PastLocalDate] = PastLocalDateBindable(true)
 
@@ -50,7 +49,8 @@ class UpdatedPrintSuppressionsController @Inject()
   def notifySubscriber(): Action[JsValue] =
     Action.async(parse.json) { implicit request =>
       withJsonBody[NotifySubscriberRequest] { requestReceived =>
-        updatedPrintSuppressionService.process(requestReceived)
+        updatedPrintSuppressionService
+          .process(requestReceived)
           .fold(
             {
               case _: SaUtrNotFoundException => BadRequest("Missing SaUtr")
