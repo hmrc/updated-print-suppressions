@@ -16,18 +16,131 @@
 
 package uk.gov.hmrc.ups.controllers
 
+import akka.actor.ActorSystem
+import akka.util.Timeout
+import cats.data.EitherT
+import org.mockito.ArgumentMatchers.any
+import org.mockito.Mockito.{reset, when}
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
+import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.http.ContentTypes
+import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, OK}
+import play.api.libs.json.Json
+import play.api.test.Helpers.{CONTENT_TYPE, contentAsString, status}
+import play.api.test.{FakeHeaders, FakeRequest, Helpers}
+import uk.gov.hmrc.ups.model.NotifySubscriberRequest
+import uk.gov.hmrc.ups.service.{SaUtrNotFoundException, UpdatedPrintSuppressionService}
 
-class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPerSuite {
+import java.time.Instant
+import scala.concurrent.ExecutionContext
+import scala.concurrent.ExecutionContext.global
+import scala.concurrent.duration.DurationInt
+
+class UpdatedPrintSuppressionsControllerSpec
+  extends PlaySpec
+    with GuiceOneAppPerSuite
+    with ScalaFutures
+    with BeforeAndAfterEach {
   spec =>
 
-  val controller = app.injector.instanceOf[UpdatedPrintSuppressionsController]
+  implicit lazy val system: ActorSystem = ActorSystem()
+  implicit def ec: ExecutionContext = global
 
+  val updatedOn: UpdatedOn = mock[UpdatedOn]
+  val upsService: UpdatedPrintSuppressionService = mock[UpdatedPrintSuppressionService]
+
+  val controller = new UpdatedPrintSuppressionsController(
+    updatedOn,
+    Helpers.stubControllerComponents(),
+    upsService
+  )
+
+  override def beforeEach(): Unit = {
+    reset(updatedOn)
+    reset(upsService)
+    super.beforeEach()
+  }
+  
   "UpdatedPrintSuppressionsController" should {
-    "" in {
+    "list print preferences" in {
       val result = controller.list(None, None)
       result mustNot be(null)
     }
+
+    "notify subscriber" in {
+      val reqBody =
+        s"""{
+           |  "changedValue" : "paper",
+           |  "updatedAt"    : "${Instant.now()}",
+           |  "taxIds"       : { "nino" : "AB112233C", "sautr" : "abcde" }
+           |}""".stripMargin
+
+      when(upsService.process(any[NotifySubscriberRequest]))
+        .thenReturn(EitherT.rightT(()))
+      
+      val request = createRequest(reqBody)
+      val result = controller.notifySubscriber()(request).futureValue
+      result.header.status must be(OK)
+    }
+
+    "notify subscriber, missing sautr" in {
+      val reqBody =
+        s"""{
+           |  "changedValue" : "paper",
+           |  "updatedAt"    : "${Instant.now()}",
+           |  "taxIds"       : { "nino" : "AB112233C" }
+           |}""".stripMargin
+
+      when(upsService.process(any[NotifySubscriberRequest]))
+        .thenReturn(EitherT.leftT(new SaUtrNotFoundException))
+
+      val request = createRequest(reqBody)
+      val result = controller.notifySubscriber()(request).futureValue
+      result.header.status must be(BAD_REQUEST)
+    }
+    
+    "notify subscriber, exception" in {
+      implicit val timeout: Timeout = Timeout(5.seconds)
+      val reqBody =
+        s"""{
+           |  "changedValue" : "paper",
+           |  "updatedAt"    : "${Instant.now()}",
+           |  "taxIds"       : { "nino" : "AB112233C" }
+           |}""".stripMargin
+
+      when(upsService.process(any[NotifySubscriberRequest]))
+        .thenReturn(EitherT.leftT(new RuntimeException("whatever")))
+
+      val request = createRequest(reqBody)
+      val result = controller.notifySubscriber()(request)
+      status(result) must be(INTERNAL_SERVER_ERROR)
+      contentAsString(result) must include("whatever")
+    }
+    
+    "notify subscriber, invalid message delivery request" in {
+      implicit val timeout: Timeout = Timeout(5.seconds)
+      val reqBody =
+        s"""{
+           |  "changedValue" : "paperz",
+           |  "updatedAt"    : "${Instant.now()}",
+           |  "taxIds"       : { "nino" : "AB112233C" }
+           |}""".stripMargin
+      
+      val request = createRequest(reqBody)
+      val result = controller.notifySubscriber()(request)
+      status(result) must be(BAD_REQUEST)
+      contentAsString(result) must include("Invalid message delivery format")
+    }
   }
+
+  private def createRequest(reqBody: String) =
+    FakeRequest(
+      "POST",
+      routes.UpdatedPrintSuppressionsController.notifySubscriber().url,
+      FakeHeaders(Seq(CONTENT_TYPE -> ContentTypes.JSON)),
+      Json.parse(reqBody)
+    )
 }

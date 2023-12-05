@@ -16,17 +16,50 @@
 
 package uk.gov.hmrc.ups.service
 
+import cats.data.EitherT
+import org.joda.time.DateTime
+import play.api.Configuration
+import uk.gov.hmrc.domain.SaUtr
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
+import uk.gov.hmrc.ups.model.{NotifySubscriberRequest, PrintPreference}
+import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsRepository
 import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 import uk.gov.hmrc.ups.scheduling.Result
 
-import javax.inject.{ Inject, Singleton }
-import scala.concurrent.{ ExecutionContext, Future }
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class UpdatedPrintSuppressionService @Inject()(
-  preferencesProcessor: PreferencesProcessor
+  preferencesProcessor: PreferencesProcessor,
+  repository: UpdatedPrintSuppressionsRepository,
+  configuration: Configuration
 )(implicit val ec: ExecutionContext) {
+  
+  lazy val formIds: List[String] =
+    configuration
+      .getOptional[Seq[String]]("form-types.saAll")
+      .getOrElse(throw new RuntimeException(s"configuration property form-types is not set"))
+      .toList
+
+  def insert(pp: PrintPreference, time: DateTime): EitherT[Future, Throwable, Unit] = {
+    EitherT {
+      repository
+        .insert(pp, time)
+        .map(a => Right(a))
+        .recover(ex => Left(ex))
+    }
+  }
+
+  def process(request: NotifySubscriberRequest): EitherT[Future, Throwable, Unit] =
+    for {
+      pp <- createPrintPreference(request)
+      _  <- insert(pp, new DateTime(request.updatedAt.toEpochMilli))
+    } yield { () }
+  
+
 
   def execute: Future[Result] =
     preferencesProcessor.run(HeaderCarrier()).map { totals =>
@@ -34,4 +67,26 @@ class UpdatedPrintSuppressionService @Inject()(
         s"UpdatedPrintSuppressions: ${totals.processed} items processed with ${totals.failed} failures"
       )
     }
+
+  private def createPrintPreference(request: NotifySubscriberRequest): EitherT[Future, Throwable, PrintPreference] = {
+    EitherT {
+      Try {
+        PrintPreference(
+          getUtrValue(request), "utr",
+          if (request.changedValue == Digital) formIds else List.empty
+        )
+      } match {
+        case Success(printPreference) => Future.successful(Right(printPreference))
+        case Failure(exception)       => Future.successful(Left(exception))
+      }
+    }
+  }
+
+  private def getUtrValue(request: NotifySubscriberRequest) = {
+    request.taxIds.get("sautr") match {
+      case Some(utr) => SaUtr(utr).value
+      case None      => throw new SaUtrNotFoundException
+    }
+  }
+
 }
