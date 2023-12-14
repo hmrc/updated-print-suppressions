@@ -46,9 +46,9 @@ class UpdatedPrintSuppressionService @Inject()(
 
   def process(request: NotifySubscriberRequest): EitherT[Future, Throwable, Unit] =
     for {
-      pp <- createPrintPreference(request)
-      _  <- insert(pp, new DateTime(request.updatedAt.toEpochMilli))
-    } yield { () }
+      pp  <- createPrintPreference(request)
+      res <- insert(pp, new DateTime(request.updatedAt.toEpochMilli))
+    } yield { res }
 
   def execute: Future[Result] =
     preferencesProcessor.run(HeaderCarrier()).map { totals =>
