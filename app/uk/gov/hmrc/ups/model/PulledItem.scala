@@ -20,6 +20,7 @@ import org.joda.time.DateTime
 import play.api.libs.json.Json
 import uk.gov.hmrc.http.controllers.RestFormats
 
+// $COVERAGE-OFF$Soon to be deleted
 case class PulledItem(entityId: EntityId, paperless: Boolean, updatedAt: DateTime, callbackUrl: String)
 
 object PulledItem {
@@ -31,3 +32,4 @@ object PulledItem {
   }
 
 }
+// $COVERAGE-ON$
