@@ -41,8 +41,6 @@ class UpdatedPrintSuppressionServiceISpec
   with ScalaFutures
   with IntegrationPatience
   with MongoSupport
-  with BeforeAndAfterEach
-  with EitherValues
   with Injecting {
   this: Suite =>
       
@@ -73,18 +71,5 @@ class UpdatedPrintSuppressionServiceISpec
       eitherResult.value.futureValue must be(Right(()))
       repository.collection.countDocuments().toFuture().futureValue must be(1)
     }
-
-//    "process preference throws" in new Setup {
-////      when(counterRepository.insert(any[PrintPreference], any[DateTime]))
-////        .thenThrow(new RuntimeException("whatever"))
-//
-//      val nsr = NotifySubscriberRequest(Digital, Instant.now(), Map("sautr" -> "sautr1"))
-//
-//      val eitherResult = service.process(nsr).value.futureValue
-//      eitherResult.left.value mustBe a[RuntimeException]
-//      eitherResult.left.value.getMessage must be("whatever")
-//    }
-//
-//    "execute" in new Setup {}
   }
 }
