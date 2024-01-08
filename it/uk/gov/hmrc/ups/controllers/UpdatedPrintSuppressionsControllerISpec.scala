@@ -214,4 +214,8 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       (jsonBody \ "message").as[String] mustBe "updated-on is a mandatory parameter"
     }
   }
+  
+  "notifySubscriber" should {
+    
+  }
 }

@@ -17,33 +17,43 @@
 package uk.gov.hmrc.ups.service
 
 import cats.data.EitherT
-import org.joda.time.DateTime
+import org.joda.time.{DateTime, LocalDate}
 import play.api.Configuration
 import uk.gov.hmrc.domain.SaUtr
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
-import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
-import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsRepository
+import uk.gov.hmrc.ups.model.{NotifySubscriberRequest, PrintPreference}
+import uk.gov.hmrc.ups.repository.{MongoCounterRepository, UpdatedPrintSuppressionsRepository}
 import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 import uk.gov.hmrc.ups.scheduling.Result
 
-import javax.inject.{ Inject, Singleton }
-import scala.concurrent.{ ExecutionContext, Future }
-import scala.util.{ Failure, Success, Try }
+import javax.inject.{Inject, Singleton}
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 
 @Singleton
 class UpdatedPrintSuppressionService @Inject()(
   preferencesProcessor: PreferencesProcessor,
-  repository: UpdatedPrintSuppressionsRepository,
+  mongoComponent: MongoComponent,
+  mongoCounterRepository: MongoCounterRepository,
   configuration: Configuration
 )(implicit val ec: ExecutionContext) {
-
+  
   private lazy val formIds: List[String] =
     configuration
       .getOptional[Seq[String]]("form-types.saAll")
       .getOrElse(throw new RuntimeException(s"configuration property form-types is not set"))
       .toList
 
+  def repository(): UpdatedPrintSuppressionsRepository = {
+    new UpdatedPrintSuppressionsRepository(
+      mongoComponent,
+      LocalDate.now(),
+      mongoCounterRepository
+    )
+  }
+  
   def process(request: NotifySubscriberRequest): EitherT[Future, Throwable, Unit] =
     for {
       pp  <- createPrintPreference(request)
@@ -74,7 +84,7 @@ class UpdatedPrintSuppressionService @Inject()(
   private def insert(pp: PrintPreference, time: DateTime): EitherT[Future, Throwable, Unit] =
     EitherT {
       Try {
-        repository
+        repository()
           .insert(pp, time)
           .map(a => Right(a))
           .recover(ex => Left(ex))
