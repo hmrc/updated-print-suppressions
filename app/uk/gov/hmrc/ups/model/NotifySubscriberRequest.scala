@@ -39,7 +39,10 @@ case class NotifySubscriberRequest(
   changedValue: MessageDeliveryFormat,
   updatedAt: Instant,
   taxIds: Map[String, String]
-)
+) {
+  override def toString: String =
+    s"changedValue: [$changedValue], updatedAt: [$updatedAt], taxIds: ${taxIds.keys.mkString(", ")}"
+}
 
 object NotifySubscriberRequest {
   implicit val instantReads: Reads[Instant] = {

@@ -25,9 +25,10 @@ import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Configuration
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
-import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsRepository
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 
 import java.time.Instant
@@ -39,11 +40,17 @@ class UpdatedPrintSuppressionServiceSpec
   trait Setup {
     implicit val ec = ExecutionContext.Implicits.global
     implicit val hc = HeaderCarrier()
-    val config = Configuration(data = ("form-types.saAll", List("abc")))
+    private val config = Configuration(data = ("form-types.saAll", List("abc")))
 
-    val mockProcessor = mock[PreferencesProcessor]
-    val mockRepo = mock[UpdatedPrintSuppressionsRepository]
-    val service = new UpdatedPrintSuppressionService(mockProcessor, mockRepo, config)
+    private val mockProcessor = mock[PreferencesProcessor]
+    private val mongoComponent = mock[MongoComponent]
+    private val counterRepository = mock[MongoCounterRepository]
+
+    val mockRepo: UpdatedPrintSuppressionsRepository = mock[UpdatedPrintSuppressionsRepository]
+
+    val service = new UpdatedPrintSuppressionService(mockProcessor, mongoComponent, counterRepository, config) {
+      override def repository(): UpdatedPrintSuppressionsRepository = mockRepo
+    }
   }
 
   "updated print suppressions service" should {
@@ -52,8 +59,9 @@ class UpdatedPrintSuppressionServiceSpec
       when(mockRepo.insert(any[PrintPreference], any[DateTime]))
         .thenReturn(Future.successful(()))
 
-      val nsr = NotifySubscriberRequest(Digital, Instant.now(), Map("sautr" -> "sautr1"))
-      val eitherResult = service.process(nsr)
+      private val nsr = NotifySubscriberRequest(Digital, Instant.now(), Map("sautr" -> "sautr1"))
+      private val eitherResult = service.process(nsr)
+
       eitherResult.value.futureValue must be(Right(()))
     }
 
@@ -61,9 +69,9 @@ class UpdatedPrintSuppressionServiceSpec
       when(mockRepo.insert(any[PrintPreference], any[DateTime]))
         .thenThrow(new RuntimeException("whatever"))
 
-      val nsr = NotifySubscriberRequest(Digital, Instant.now(), Map("sautr" -> "sautr1"))
+      private val nsr = NotifySubscriberRequest(Digital, Instant.now(), Map("sautr" -> "sautr1"))
+      private val eitherResult = service.process(nsr).value.futureValue
 
-      val eitherResult = service.process(nsr).value.futureValue
       eitherResult.left.value mustBe a[RuntimeException]
       eitherResult.left.value.getMessage must be("whatever")
     }
