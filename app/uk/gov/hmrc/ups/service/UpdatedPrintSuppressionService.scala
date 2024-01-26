@@ -55,7 +55,6 @@ class UpdatedPrintSuppressionService @Inject()(
       res <- insert(pp, new DateTime(request.updatedAt.toEpochMilli))
     } yield { res }
 
-
   private def createPrintPreference(request: NotifySubscriberRequest): EitherT[Future, Throwable, PrintPreference] =
     EitherT {
       Try {

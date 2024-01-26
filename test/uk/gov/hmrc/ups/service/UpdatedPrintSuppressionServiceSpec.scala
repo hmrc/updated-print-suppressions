@@ -40,7 +40,7 @@ class UpdatedPrintSuppressionServiceSpec
     implicit val ec = ExecutionContext.Implicits.global
     implicit val hc = HeaderCarrier()
     private val config = Configuration(data = ("form-types.saAll", List("abc")))
-    
+
     private val mongoComponent = mock[MongoComponent]
     private val counterRepository = mock[MongoCounterRepository]
 
