@@ -20,7 +20,7 @@ import org.joda.time.LocalDate
 import org.scalatest.concurrent.{IntegrationPatience, ScalaFutures}
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
-import org.scalatest.{BeforeAndAfterEach, EitherValues, Suite, TestSuite}
+import org.scalatest.{Suite, TestSuite}
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Configuration
 import play.api.test.Injecting
