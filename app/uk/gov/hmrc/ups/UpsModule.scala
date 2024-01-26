@@ -20,7 +20,7 @@ import com.google.inject.{ AbstractModule, Provides, Singleton }
 import net.codingwell.scalaguice.ScalaModule
 import play.api.{ Configuration, Logger }
 import play.api.libs.concurrent.AkkaGuiceSupport
-import uk.gov.hmrc.ups.scheduled.jobs.{ RemoveOlderCollectionsJob, UpdatedPrintSuppressionJob }
+import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob
 import uk.gov.hmrc.ups.scheduling.ScheduledJob
 
 // $COVERAGE-OFF$Disabling
@@ -39,12 +39,10 @@ class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {
   @Provides
   @Singleton
   def scheduledJobsProvider(
-    removeOlderCollectionsJob: RemoveOlderCollectionsJob,
-    updatedPrintSuppressionJob: UpdatedPrintSuppressionJob
+    removeOlderCollectionsJob: RemoveOlderCollectionsJob
   ): Seq[ScheduledJob] =
     Seq(
-      removeOlderCollectionsJob,
-      updatedPrintSuppressionJob
+      removeOlderCollectionsJob
     )
 }
 // $COVERAGE-ON$

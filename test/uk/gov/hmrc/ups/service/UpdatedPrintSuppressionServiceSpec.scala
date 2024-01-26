@@ -29,7 +29,6 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
-import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 
 import java.time.Instant
 import scala.concurrent.{ ExecutionContext, Future }
@@ -41,14 +40,13 @@ class UpdatedPrintSuppressionServiceSpec
     implicit val ec = ExecutionContext.Implicits.global
     implicit val hc = HeaderCarrier()
     private val config = Configuration(data = ("form-types.saAll", List("abc")))
-
-    private val mockProcessor = mock[PreferencesProcessor]
+    
     private val mongoComponent = mock[MongoComponent]
     private val counterRepository = mock[MongoCounterRepository]
 
     val mockRepo: UpdatedPrintSuppressionsRepository = mock[UpdatedPrintSuppressionsRepository]
 
-    val service = new UpdatedPrintSuppressionService(mockProcessor, mongoComponent, counterRepository, config) {
+    val service = new UpdatedPrintSuppressionService(mongoComponent, counterRepository, config) {
       override def repository(): UpdatedPrintSuppressionsRepository = mockRepo
     }
   }
