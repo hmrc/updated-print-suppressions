@@ -20,13 +20,10 @@ import cats.data.EitherT
 import org.joda.time.{ DateTime, LocalDate }
 import play.api.Configuration
 import uk.gov.hmrc.domain.SaUtr
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
-import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
-import uk.gov.hmrc.ups.scheduling.Result
 
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
@@ -34,7 +31,6 @@ import scala.util.{ Failure, Success, Try }
 
 @Singleton
 class UpdatedPrintSuppressionService @Inject()(
-  preferencesProcessor: PreferencesProcessor,
   mongoComponent: MongoComponent,
   mongoCounterRepository: MongoCounterRepository,
   configuration: Configuration
@@ -58,13 +54,6 @@ class UpdatedPrintSuppressionService @Inject()(
       pp  <- createPrintPreference(request)
       res <- insert(pp, new DateTime(request.updatedAt.toEpochMilli))
     } yield { res }
-
-  def execute: Future[Result] =
-    preferencesProcessor.run(HeaderCarrier()).map { totals =>
-      Result(
-        s"UpdatedPrintSuppressions: ${totals.processed} items processed with ${totals.failed} failures"
-      )
-    }
 
   private def createPrintPreference(request: NotifySubscriberRequest): EitherT[Future, Throwable, PrintPreference] =
     EitherT {

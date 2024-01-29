@@ -18,20 +18,16 @@ package uk.gov.hmrc.ups.controllers.admin
 
 import play.api.libs.json.{ JsValue, OFormat }
 import play.api.mvc.{ Action, AnyContent, ControllerComponents, QueryStringBindable }
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 import uk.gov.hmrc.play.bootstrap.controller.WithJsonBody
 import uk.gov.hmrc.ups.controllers.UpdatedOn
 import uk.gov.hmrc.ups.controllers.bind.PastLocalDateBindable
 import uk.gov.hmrc.ups.model.{ Limit, PastLocalDate, PrintPreference }
-import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 
 import javax.inject.{ Inject, Singleton }
-import scala.concurrent.ExecutionContext
 
 @Singleton
-class AdminController @Inject()(updatedOn: UpdatedOn, cc: ControllerComponents, preferencesProcessor: PreferencesProcessor)(implicit ec: ExecutionContext)
-    extends BackendController(cc) with WithJsonBody {
+class AdminController @Inject()(updatedOn: UpdatedOn, cc: ControllerComponents) extends BackendController(cc) with WithJsonBody {
 
   val localDateBinder: QueryStringBindable[PastLocalDate] = PastLocalDateBindable(false)
 
@@ -50,14 +46,6 @@ class AdminController @Inject()(updatedOn: UpdatedOn, cc: ControllerComponents, 
   def insert(date: String): Action[JsValue] = Action.async(parse.json) { implicit request =>
     withJsonBody[PrintPreference] { body =>
       updatedOn.insert(date, body)
-    }
-  }
-
-  def processPrintSuppressions(): Action[AnyContent] = Action.async {
-    preferencesProcessor.run(HeaderCarrier()).map { totals =>
-      Ok(
-        s"UpdatedPrintSuppressions: ${totals.processed} item(s) processed with ${totals.failed} failure(s)"
-      )
     }
   }
 }

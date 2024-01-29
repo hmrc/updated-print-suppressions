@@ -28,7 +28,6 @@ import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.NotifySubscriberRequest
 import uk.gov.hmrc.ups.repository.{MongoCounterRepository, UpdatedPrintSuppressionsRepository}
-import uk.gov.hmrc.ups.scheduled.PreferencesProcessor
 
 import java.time.Instant
 import scala.concurrent.ExecutionContext
@@ -47,8 +46,7 @@ class UpdatedPrintSuppressionServiceISpec
   trait Setup {
     implicit val ec = ExecutionContext.Implicits.global
     val config = Configuration(data = ("form-types.saAll", List("abc")))
-
-    private val preferencesProcessor = inject[PreferencesProcessor]
+    
     private val counterRepository = inject[MongoCounterRepository]
 
     val repository: UpdatedPrintSuppressionsRepository = {
@@ -59,7 +57,7 @@ class UpdatedPrintSuppressionServiceISpec
       )
     }
     
-    val service = new UpdatedPrintSuppressionService(preferencesProcessor, mongoComponent, counterRepository, config)
+    val service = new UpdatedPrintSuppressionService(mongoComponent, counterRepository, config)
   }
 
   "updated print suppressions service" - {
