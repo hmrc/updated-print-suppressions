@@ -16,15 +16,13 @@
 
 package uk.gov.hmrc.ups.repository
 
-import org.joda.time.LocalDate
-//import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
 import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.test.MongoSupport
 
-import scala.annotation.nowarn
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
@@ -36,7 +34,6 @@ class UpdatedPrintSuppressionsDatabaseSpec extends PlaySpec with ScalaFutures wi
   private val upsCollectionName2 = UpdatedPrintSuppressions.repoNameTemplate(today.minusDays(1))
   private val counters = "counters"
 
-  @nowarn("msg=discarded non-Unit value")
   override def beforeAll(): Unit = {
     super.beforeAll()
     await(mongoComponent.database.drop().toFuture())

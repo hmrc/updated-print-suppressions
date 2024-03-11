@@ -18,6 +18,7 @@ package uk.gov.hmrc.ups.scheduling
 
 import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
+import scala.language.implicitConversions
 
 trait SchedulingConfig {
   def runModeBridge: RunModeBridge
@@ -53,5 +54,5 @@ trait SchedulingConfig {
 
   implicit def durationToString(d: Duration): WriteDuration = new WriteDuration(d)
 
-  override def toString() = s"'$name' initialDelay: ${initialDelay.toHM} interval: ${interval.toHM}"
+  override def toString = s"'$name' initialDelay: ${initialDelay.toHM} interval: ${interval.toHM}"
 }

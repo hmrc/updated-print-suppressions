@@ -16,18 +16,19 @@
 
 package uk.gov.hmrc.ups.model
 
-import org.joda.time.DateTime
-import play.api.libs.json.Json
-import uk.gov.hmrc.http.controllers.RestFormats
+import play.api.libs.json.{ Format, Json, OFormat }
+import uk.gov.hmrc.ups.utils.DateFormats
+
+import java.time.Instant
 
 // $COVERAGE-OFF$Soon to be deleted
-case class PulledItem(entityId: EntityId, paperless: Boolean, updatedAt: DateTime, callbackUrl: String)
+case class PulledItem(entityId: EntityId, paperless: Boolean, updatedAt: Instant, callbackUrl: String)
 
 object PulledItem {
 
-  implicit val formats = {
-    implicit val entityIdFormats = EntityId.formats
-    implicit val dateFormats = RestFormats.dateTimeFormats
+  implicit val formats: OFormat[PulledItem] = {
+    implicit val entityIdFormats: Format[EntityId] = EntityId.formats
+    implicit val dateFormats: Format[Instant] = DateFormats.instantFormats
     Json.format[PulledItem]
   }
 

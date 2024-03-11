@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.ups.repository
 
-import org.joda.time.LocalDate
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters
 import org.scalatest.DoNotDiscover
@@ -27,6 +26,7 @@ import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.utils.DateTimeUtils
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext
 
 @DoNotDiscover
@@ -35,7 +35,7 @@ class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with Default
 
   val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
   val repository: UpdatedPrintSuppressionsRepository =
-    new UpdatedPrintSuppressionsRepository(mongoComponent, new LocalDate().minusDays(1), mongoCounterRepository)
+    new UpdatedPrintSuppressionsRepository(mongoComponent, LocalDate.now().minusDays(1), mongoCounterRepository)
 
   val BATCH_SIZE: Int = 100000
 

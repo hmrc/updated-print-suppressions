@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.ups
 
-import akka.actor.ActorSystem
+import org.apache.pekko.actor.ActorSystem
 
 import javax.inject.{ Inject, Singleton }
 import play.api.Logger
@@ -24,7 +24,6 @@ import play.api.inject.ApplicationLifecycle
 import play.api.Configuration
 import uk.gov.hmrc.ups.scheduling.ScheduledJob
 
-import scala.annotation.nowarn
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
@@ -39,7 +38,6 @@ class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, 
 
   scheduledJobs.foreach(startScheduleJob)
 
-  @nowarn("msg=discarded non-Unit value")
   private def startScheduleJob(job: ScheduledJob)(implicit ec: ExecutionContext): Unit =
     if (job.taskEnabled) {
       logger.warn(s"Starting scheduled job $job")

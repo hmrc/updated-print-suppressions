@@ -19,12 +19,14 @@ package uk.gov.hmrc.ups
 import com.google.inject.{ AbstractModule, Provides, Singleton }
 import net.codingwell.scalaguice.ScalaModule
 import play.api.{ Configuration, Logger }
-import play.api.libs.concurrent.AkkaGuiceSupport
+import play.api.libs.concurrent.PekkoGuiceSupport
 import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob
 import uk.gov.hmrc.ups.scheduling.ScheduledJob
 
+import java.time.LocalDate
+
 // $COVERAGE-OFF$Disabling
-class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {
+class UpsModule extends AbstractModule with ScalaModule with PekkoGuiceSupport {
 
   private val logger: Logger = Logger(getClass)
 
@@ -35,6 +37,9 @@ class UpsModule extends AbstractModule with ScalaModule with AkkaGuiceSupport {
     if (!enabled) logger.warn(s"'scheduling.$name.taskEnabled' is not true and the scheduled job will not be started")
     enabled
   }
+
+  @Provides
+  def localDate(): LocalDate = LocalDate.now()
 
   @Provides
   @Singleton

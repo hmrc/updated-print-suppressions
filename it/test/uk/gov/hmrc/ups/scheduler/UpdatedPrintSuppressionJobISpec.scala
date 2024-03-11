@@ -27,7 +27,7 @@ import uk.gov.hmrc.mongo.workitem.ProcessingStatus
 import uk.gov.hmrc.ups.ispec.UpdatedPrintSuppressionTestServer
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions
-import uk.gov.hmrc.ups.utils.{DateTimeUtils, Generate}
+import uk.gov.hmrc.ups.utils.{ DateTimeUtils, Generate }
 
 @Ignore
 class UpdatedPrintSuppressionJobISpec extends UpdatedPrintSuppressionTestServer {

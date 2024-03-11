@@ -16,15 +16,14 @@
 
 package uk.gov.hmrc.ups.scheduled
 
-import org.joda.time.LocalDate
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions
 
+import java.time.LocalDate
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import scala.concurrent.duration._
-
 import scala.language.postfixOps
 
 class RemoveOlderCollectionsSpec extends PlaySpec with ScalaFutures {

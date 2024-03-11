@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.ups.scheduled
 
-import org.joda.time.format.DateTimeFormat
-import org.joda.time.{ Duration => jDuration, _ }
 import uk.gov.hmrc.ups.repository.{ UpdatedPrintSuppressions, UpdatedPrintSuppressionsDatabase }
 
+import java.time.{ LocalDate, Period }
+import java.time.format.DateTimeFormatter
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -56,14 +56,10 @@ trait DeleteCollectionFilter {
 
   def filterUpsCollectionsOnly(collectionName: String, days: Duration): Boolean = {
 
-    val formatter = DateTimeFormat.forPattern(UpdatedPrintSuppressions.datePattern)
-    def extractDateFromCollection(value: String) = formatter.parseLocalDate(value.dropWhile(!_.isDigit))
+    val formatter = DateTimeFormatter.ofPattern(UpdatedPrintSuppressions.datePattern)
+    def extractDateFromCollection(value: String) = LocalDate.parse(value.dropWhile(!_.isDigit), formatter)
 
-    new jDuration(
-      extractDateFromCollection(collectionName).toDateTimeAtStartOfDay,
-      today.toDateTimeAtStartOfDay
-    ).getStandardDays.days >= days
-
+    Period.between(extractDateFromCollection(collectionName), today).getDays >= days.toDays
   }
 }
 final case class Totals(failures: List[Failed], successes: List[Succeeded])

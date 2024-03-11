@@ -16,21 +16,22 @@
 
 package uk.gov.hmrc.ups.model
 
-import org.joda.time.DateTime
-import play.api.libs.json.Json
-import uk.gov.hmrc.http.controllers.RestFormats
+import play.api.libs.json.{ Format, Json, OFormat }
+import uk.gov.hmrc.ups.utils.DateFormats
+
+import java.time.Instant
 
 object Filters {
-  implicit val format = {
-    implicit val dateTimeReader = RestFormats.dateTimeFormats
+  implicit val format: OFormat[Filters] = {
+    implicit val dateTimeReader: Format[Instant] = DateFormats.instantFormats
     Json.format[Filters]
   }
 }
 
-case class Filters(failedBefore: DateTime, availableBefore: DateTime)
+case class Filters(failedBefore: Instant, availableBefore: Instant)
 
 object WorkItemRequest {
-  implicit val format = Json.format[WorkItemRequest]
+  implicit val format: OFormat[WorkItemRequest] = Json.format[WorkItemRequest]
 }
 
 case class WorkItemRequest(filters: Filters)

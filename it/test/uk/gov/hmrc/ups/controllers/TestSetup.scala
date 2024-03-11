@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.ups.controllers
 
-import org.joda.time.LocalDate
 import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
@@ -25,9 +24,10 @@ import play.api.libs.json.OFormat
 import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.{MongoCounterRepository, UpdatedPrintSuppressionsRepository}
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 
-import scala.annotation.nowarn
+import java.time.{ LocalDate, ZoneOffset }
+import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
 
 trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with MongoSupport {
@@ -36,8 +36,10 @@ trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with 
   val today: LocalDate = LocalDate.now
   val yesterday: LocalDate = today.minusDays(1)
 
-  val todayString: String = today.toString("yyyy-MM-dd")
-  val yesterdayAsString: String = yesterday.toString("yyyy-MM-dd")
+  val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE
+
+  val todayString: String = dateFormatter.format(today)
+  val yesterdayAsString: String = dateFormatter.format(yesterday)
 
   implicit val ppFormats: OFormat[PrintPreference] = PrintPreference.formats
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
@@ -51,13 +53,14 @@ trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with 
   val repoYesterday = new UpdatedPrintSuppressionsRepository(mongoComponent, yesterday, mongoCounterRepository)
   await(repoYesterday.collection.deleteMany(Filters.empty()).toFuture())
 
-  @nowarn("msg=discarded non-Unit value")
+  def todayAtStartOfDay = today.atStartOfDay().toInstant(ZoneOffset.UTC)
+  def yesterdayAtStartOfDay = yesterday.atStartOfDay().toInstant(ZoneOffset.UTC)
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     await(repoYesterday.collection.drop().toFuture())
   }
 
-  @nowarn("msg=discarded non-Unit value")
   override def afterEach(): Unit = {
     super.afterEach()
     await(repoYesterday.collection.drop().toFuture())

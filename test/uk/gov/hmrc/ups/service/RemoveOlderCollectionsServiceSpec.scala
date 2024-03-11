@@ -29,7 +29,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 class RemoveOlderCollectionsServiceSpec extends PlaySpec with ScalaFutures {
 
-  implicit val ec = ExecutionContext.Implicits.global
+  implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
   "remove older collections service" should {
     "pass" in new SetUp {

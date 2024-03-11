@@ -20,15 +20,13 @@ import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 
 import scala.concurrent.ExecutionContext
 
 class MongoCounterRepositorySpec
-    extends PlaySpec with DefaultPlayMongoRepositorySupport[Counter] with BeforeAndAfterEach with ScalaFutures with IntegrationPatience
-    with GuiceOneAppPerSuite {
+    extends PlaySpec with DefaultPlayMongoRepositorySupport[Counter] with BeforeAndAfterEach with ScalaFutures with IntegrationPatience {
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 

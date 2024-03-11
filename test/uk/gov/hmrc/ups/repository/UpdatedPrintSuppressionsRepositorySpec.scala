@@ -16,29 +16,25 @@
 
 package uk.gov.hmrc.ups.repository
 
-import org.joda.time.{ DateTime, LocalDate }
 import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
-//import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.utils.DateTimeUtils
 
+import java.time.{ Instant, LocalDate }
 import java.util.concurrent.atomic.AtomicInteger
-import scala.annotation.nowarn
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.reflectiveCalls
 
 class UpdatedPrintSuppressionsRepositorySpec
-    extends PlaySpec with DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions] with BeforeAndAfterEach with ScalaFutures with IntegrationPatience
-    with GuiceOneAppPerSuite {
+    extends PlaySpec with DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions] with BeforeAndAfterEach with ScalaFutures with IntegrationPatience {
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
-  private val TODAY: LocalDate = new LocalDate()
+  private val TODAY: LocalDate = LocalDate.now()
   private val counterRepoStub = new MongoCounterRepository(mongoComponent) {
     var counter: AtomicInteger = new AtomicInteger(-1)
 
@@ -53,13 +49,12 @@ class UpdatedPrintSuppressionsRepositorySpec
 
   override protected val repository = new UpdatedPrintSuppressionsRepository(mongoComponent, TODAY, counterRepoStub)
 
-  @nowarn("msg=discarded non-Unit value")
   override def beforeEach(): Unit = {
     counterRepoStub.reset()
     repository.collection.deleteMany(Filters.empty()).toFuture().futureValue
   }
 
-  def toCounterAndPreference(ups: UpdatedPrintSuppressions): (Int, PrintPreference, DateTime) =
+  def toCounterAndPreference(ups: UpdatedPrintSuppressions): (Int, PrintPreference, Instant) =
     (ups.counter, ups.printPreference, ups.updatedAt)
 
   "UpdatedPrintSuppressionsRepository" should {
