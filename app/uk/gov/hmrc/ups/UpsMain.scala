@@ -26,6 +26,7 @@ import uk.gov.hmrc.ups.scheduling.ScheduledJob
 
 import scala.concurrent.{ ExecutionContext, Future }
 
+// $COVERAGE-OFF$
 @Singleton
 class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, lifecycle: ApplicationLifecycle, scheduledJobs: Seq[ScheduledJob])(
   implicit val ec: ExecutionContext) {
@@ -53,3 +54,4 @@ class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, 
     .toInt
 
 }
+// $COVERAGE-ON$

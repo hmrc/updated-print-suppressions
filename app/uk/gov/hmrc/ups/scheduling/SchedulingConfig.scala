@@ -20,6 +20,7 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.duration._
 import scala.language.implicitConversions
 
+//$COVERAGE-OFF$
 trait SchedulingConfig {
   def runModeBridge: RunModeBridge
 
@@ -56,3 +57,4 @@ trait SchedulingConfig {
 
   override def toString = s"'$name' initialDelay: ${initialDelay.toHM} interval: ${interval.toHM}"
 }
+//$COVERAGE-ON$
