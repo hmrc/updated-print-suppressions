@@ -45,5 +45,5 @@ object Entity {
     }
   }
 
-  implicit val formats = Format(reads, writes)
+  implicit val formats: Format[Entity] = Format(reads, writes)
 }

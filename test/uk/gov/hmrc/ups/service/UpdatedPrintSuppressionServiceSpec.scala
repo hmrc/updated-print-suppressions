@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.ups.service
 
-import org.joda.time.DateTime
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.when
 import org.scalatest.{ BeforeAndAfterEach, EitherValues }
@@ -29,6 +28,7 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
+import uk.gov.hmrc.ups.utils.DateTimeUtils
 
 import java.time.Instant
 import scala.concurrent.{ ExecutionContext, Future }
@@ -37,8 +37,8 @@ class UpdatedPrintSuppressionServiceSpec
     extends PlaySpec with ScalaFutures with BeforeAndAfterEach with IntegrationPatience with MockitoSugar with EitherValues {
 
   trait Setup {
-    implicit val ec = ExecutionContext.Implicits.global
-    implicit val hc = HeaderCarrier()
+    implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
+    implicit val hc: HeaderCarrier = HeaderCarrier()
     private val config = Configuration(data = ("form-types.saAll", List("abc")))
 
     private val mongoComponent = mock[MongoComponent]
@@ -54,20 +54,20 @@ class UpdatedPrintSuppressionServiceSpec
   "updated print suppressions service" should {
 
     "process preference success" in new Setup {
-      when(mockRepo.insert(any[PrintPreference], any[DateTime]))
+      when(mockRepo.insert(any[PrintPreference], any[Instant]))
         .thenReturn(Future.successful(()))
 
-      private val nsr = NotifySubscriberRequest(Digital, Instant.now(), Map("sautr" -> "sautr1"))
+      private val nsr = NotifySubscriberRequest(Digital, DateTimeUtils.now, Map("sautr" -> "sautr1"))
       private val eitherResult = service.process(nsr)
 
       eitherResult.value.futureValue must be(Right(()))
     }
 
     "process preference throws" in new Setup {
-      when(mockRepo.insert(any[PrintPreference], any[DateTime]))
+      when(mockRepo.insert(any[PrintPreference], any[Instant]))
         .thenThrow(new RuntimeException("whatever"))
 
-      private val nsr = NotifySubscriberRequest(Digital, Instant.now(), Map("sautr" -> "sautr1"))
+      private val nsr = NotifySubscriberRequest(Digital, DateTimeUtils.now, Map("sautr" -> "sautr1"))
       private val eitherResult = service.process(nsr).value.futureValue
 
       eitherResult.left.value mustBe a[RuntimeException]

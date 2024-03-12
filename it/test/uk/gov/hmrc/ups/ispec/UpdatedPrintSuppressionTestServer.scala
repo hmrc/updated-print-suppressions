@@ -19,41 +19,30 @@ package uk.gov.hmrc.ups.ispec
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration._
-import org.joda.time.LocalDate
 import org.mongodb.scala.MongoCollection
 import org.mongodb.scala.model.Filters
-import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.concurrent.{ Eventually, IntegrationPatience, ScalaFutures }
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
-import play.api.{Application, Environment, Logger, Mode}
+import play.api.{ Application, Environment, Logger, Mode }
 import play.api.test.Helpers._
 import play.api.inject.guice.GuiceApplicationBuilder
 import uk.gov.hmrc.mongo.test.MongoSupport
-import uk.gov.hmrc.ups.repository.{MongoCounterRepository, UpdatedPrintSuppressions}
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
 
-import java.time.LocalDateTime
+import java.time.{ LocalDate, LocalDateTime }
 import java.time.format.DateTimeFormatter
-import scala.annotation.nowarn
 
 abstract class UpdatedPrintSuppressionTestServer(override val databaseName: String = "updated-print-suppression-ispec")
-    extends PlaySpec
-      with MongoSupport
-      with Eventually
-      with BeforeAndAfterEach
-      with PreferencesStub
-      with EntityResolverStub
-      with ScalaFutures
-      with BeforeAndAfterAll
-      with IntegrationPatience
-      with GuiceOneServerPerSuite {
+    extends PlaySpec with MongoSupport with Eventually with BeforeAndAfterEach with PreferencesStub with EntityResolverStub with ScalaFutures
+    with BeforeAndAfterAll with IntegrationPatience with GuiceOneServerPerSuite {
 
   private val logger = Logger(getClass)
 
   override def fakeApplication(): Application = {
-    logger.info(
-      s"""Starting application with additional config:
-         |  ${configMap.mkString("\n  ")}
+    logger.info(s"""Starting application with additional config:
+                   |  ${configMap.mkString("\n  ")}
        """.stripMargin)
     // If applicationMode is not set, use Mode.Test (the default for GuiceApplicationBuilder)
     GuiceApplicationBuilder(environment = Environment.simple(mode = applicationMode.getOrElse(Mode.Test)))
@@ -70,15 +59,14 @@ abstract class UpdatedPrintSuppressionTestServer(override val databaseName: Stri
 
   protected val testId =
     TestId(testName)
-    
+
   protected def serviceMongoUri =
     s"mongodb://localhost:27017/${testId.toString}"
-    
+
   private lazy val mongoConfig =
     Map(s"mongodb.uri" -> serviceMongoUri)
 
   private lazy val configMap = mongoConfig ++ additionalConfig
-
 
   lazy val upsCollection: MongoCollection[UpdatedPrintSuppressions] = {
     val repoName = UpdatedPrintSuppressions.repoNameTemplate(LocalDate.now)
@@ -115,7 +103,6 @@ abstract class UpdatedPrintSuppressionTestServer(override val databaseName: Stri
   override def afterAll(): Unit =
     wireMockServer.stop()
 
-  @nowarn("msg=discarded non-Unit value")
   override def beforeEach(): Unit = {
     WireMock.reset()
     await(upsCollection.deleteMany(Filters.empty()).toFuture())

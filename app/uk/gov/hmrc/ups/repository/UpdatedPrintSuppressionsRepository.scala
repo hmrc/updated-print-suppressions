@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.ups.repository
 
-import org.joda.time.{ DateTime, LocalDate }
 import org.mongodb.scala.MongoWriteException
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model._
@@ -27,6 +26,7 @@ import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.updatedAtAsJson
 
+import java.time.{ Instant, LocalDate }
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 
@@ -64,7 +64,7 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
   private def updateOnInsert(
     printPreference: PrintPreference,
     ups: UpdatedPrintSuppressions,
-    updatedAt: DateTime
+    updatedAt: Instant
   ): Future[UpdateResult] = {
     val updatedAtSelector = Filters.lte("updatedAt", Codecs.toBson(updatedAtAsJson(updatedAt)))
 
@@ -79,7 +79,7 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
       .toFuture()
   }
 
-  private def insertNew(printPreference: PrintPreference, updatedAt: DateTime): Future[Unit] =
+  private def insertNew(printPreference: PrintPreference, updatedAt: Instant): Future[Unit] =
     counterRepo
       .next(counterRepoDate)
       .flatMap { counter =>
@@ -91,10 +91,10 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
       .map(_ => ())
       .recover {
         case e: MongoWriteException if e.getError.getCode == 11000 =>
-          logger.warn(s"failed to insert print preference $printPreference updated at ${updatedAt.getMillis}", e)
+          logger.warn(s"failed to insert print preference $printPreference updated at ${updatedAt.toEpochMilli}", e)
       }
 
-  def insert(printPreference: PrintPreference, updatedAt: DateTime): Future[Unit] = {
+  def insert(printPreference: PrintPreference, updatedAt: Instant): Future[Unit] = {
     val selector = Filters.and(
       Filters.equal("printPreference.id", printPreference.id),
       Filters.equal("printPreference.idType", printPreference.idType)

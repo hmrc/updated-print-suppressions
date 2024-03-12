@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.ups.controllers
 
-import akka.actor.ActorSystem
-import akka.util.Timeout
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.util.Timeout
 import cats.data.EitherT
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ reset, when }
@@ -25,7 +25,6 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.mockito.MockitoSugar.mock
 import org.scalatestplus.play.PlaySpec
-import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.http.ContentTypes
 import play.api.http.Status.{ BAD_REQUEST, INTERNAL_SERVER_ERROR, OK }
 import play.api.libs.json.Json
@@ -33,13 +32,13 @@ import play.api.test.Helpers.{ CONTENT_TYPE, contentAsString, status }
 import play.api.test.{ FakeHeaders, FakeRequest, Helpers }
 import uk.gov.hmrc.ups.model.NotifySubscriberRequest
 import uk.gov.hmrc.ups.service.{ SaUtrNotFoundException, UpdatedPrintSuppressionService }
+import uk.gov.hmrc.ups.utils.DateTimeUtils
 
-import java.time.Instant
 import scala.concurrent.ExecutionContext
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration.DurationInt
 
-class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPerSuite with ScalaFutures with BeforeAndAfterEach {
+class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with ScalaFutures with BeforeAndAfterEach {
   spec =>
 
   implicit lazy val system: ActorSystem = ActorSystem()
@@ -70,7 +69,7 @@ class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPe
       val reqBody =
         s"""{
            |  "changedValue" : "paper",
-           |  "updatedAt"    : "${Instant.now()}",
+           |  "updatedAt"    : "${DateTimeUtils.now}",
            |  "taxIds"       : { "nino" : "AB112233C", "sautr" : "abcde" }
            |}""".stripMargin
 
@@ -86,7 +85,7 @@ class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPe
       val reqBody =
         s"""{
            |  "changedValue" : "paper",
-           |  "updatedAt"    : "${Instant.now()}",
+           |  "updatedAt"    : "${DateTimeUtils.now}",
            |  "taxIds"       : { "nino" : "AB112233C" }
            |}""".stripMargin
 
@@ -103,7 +102,7 @@ class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPe
       val reqBody =
         s"""{
            |  "changedValue" : "paper",
-           |  "updatedAt"    : "${Instant.now()}",
+           |  "updatedAt"    : "${DateTimeUtils.now}",
            |  "taxIds"       : { "nino" : "AB112233C" }
            |}""".stripMargin
 
@@ -121,7 +120,7 @@ class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with GuiceOneAppPe
       val reqBody =
         s"""{
            |  "changedValue" : "paperz",
-           |  "updatedAt"    : "${Instant.now()}",
+           |  "updatedAt"    : "${DateTimeUtils.now}",
            |  "taxIds"       : { "nino" : "AB112233C" }
            |}""".stripMargin
 

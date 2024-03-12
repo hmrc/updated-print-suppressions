@@ -16,26 +16,30 @@
 
 package uk.gov.hmrc.ups.repository
 
-import org.joda.time.{ DateTime, LocalDate }
 import org.mongodb.scala.bson.ObjectId
 import play.api.libs.json.{ Format, JsValue, Json, OFormat }
-import uk.gov.hmrc.mongo.play.json.formats.{ MongoFormats, MongoJodaFormats }
+import uk.gov.hmrc.mongo.play.json.formats.{ MongoFormats, MongoJavatimeFormats }
 import uk.gov.hmrc.ups.model.PrintPreference
 
-case class UpdatedPrintSuppressions(_id: ObjectId, counter: Int, printPreference: PrintPreference, updatedAt: DateTime)
+import java.time.format.DateTimeFormatter
+import java.time.{ Instant, LocalDate }
+
+case class UpdatedPrintSuppressions(_id: ObjectId, counter: Int, printPreference: PrintPreference, updatedAt: Instant)
 
 object UpdatedPrintSuppressions {
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
   implicit val pp: OFormat[PrintPreference] = PrintPreference.formats
-  implicit val isoDateFormat: Format[DateTime] = MongoJodaFormats.dateTimeFormat
+  implicit val isoDateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
 
   implicit val formats: OFormat[UpdatedPrintSuppressions] = Json.format[UpdatedPrintSuppressions]
 
   val datePattern = "yyyyMMdd"
 
-  def toString(date: LocalDate): String = date.toString(datePattern)
+  val dateFormatter = DateTimeFormatter.ofPattern(datePattern)
+
+  def toString(date: LocalDate): String = dateFormatter.format(date)
 
   def repoNameTemplate(date: LocalDate): String = s"updated_print_suppressions_${toString(date)}"
 
-  def updatedAtAsJson(updatedAt: DateTime): JsValue = Json.toJson(updatedAt)
+  def updatedAtAsJson(updatedAt: Instant): JsValue = Json.toJson(updatedAt)
 }

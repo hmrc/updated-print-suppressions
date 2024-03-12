@@ -16,36 +16,21 @@
 
 package uk.gov.hmrc.ups.utils
 
-import org.joda.time.{ DateTime, DateTimeFieldType, DateTimeZone, LocalDate }
-import org.joda.time.format.DateTimeFormatterBuilder
+import java.time.format.DateTimeFormatter
+import java.time.{ Instant, LocalDate }
 
 trait DateConverter {
-  private val Year = 4
-
-  private val MonthOfYear = 2
-
-  private val DayOfMonth = 2
 
   //yyyy-MM-dd
-  lazy val dateFormatter = new DateTimeFormatterBuilder()
-    .appendFixedDecimal(DateTimeFieldType.year, Year)
-    .appendLiteral("-")
-    .appendFixedDecimal(DateTimeFieldType.monthOfYear, MonthOfYear)
-    .appendLiteral("-")
-    .appendFixedDecimal(DateTimeFieldType.dayOfMonth, DayOfMonth)
-    .toFormatter
+  lazy val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE
 
-  final def parseToLong(date: String): Long = dateFormatter.withZoneUTC().parseMillis(date)
+  final def parseToLocalDate(date: String): LocalDate = LocalDate.parse(date, dateFormatter)
 
-  final def parseToDateTime(date: String): DateTime = dateFormatter.withZoneUTC().parseDateTime(date).toDateTime(DateTimeZone.UTC)
+  final def formatToString(date: Long): String = dateFormatter.format(Instant.ofEpochMilli(date)) //new Instant(date, DateTimeZone.UTC).toString(dateFormatter)
 
-  final def parseToLocalDate(date: String): LocalDate = dateFormatter.parseLocalDate(date)
+  final def formatToString(date: Instant): String = dateFormatter.format(date)
 
-  final def formatToString(date: Long): String = new DateTime(date, DateTimeZone.UTC).toString(dateFormatter)
-
-  final def formatToString(date: DateTime): String = date.toString(dateFormatter)
-
-  final def formatToString(date: LocalDate): String = date.toString(dateFormatter)
+  final def formatToString(date: LocalDate): String = dateFormatter.format(date)
 
   final def safeParse[A](f: => A)(t: => Throwable): A =
     try f

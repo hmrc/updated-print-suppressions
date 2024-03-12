@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.ups.controllers
 
-import org.joda.time.LocalDate
-import org.joda.time.format.DateTimeFormatter
 import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc.{ QueryStringBindable, Result }
 import uk.gov.hmrc.http.BadRequestException
@@ -30,6 +28,8 @@ import play.api.mvc.Results._
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.utils.DateTimeUtils
 
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 class UpdatedOn @Inject()(mongoComponent: MongoComponent, counterRepository: MongoCounterRepository)(implicit ec: ExecutionContext) {
@@ -85,7 +85,7 @@ class UpdatedOn @Inject()(mongoComponent: MongoComponent, counterRepository: Mon
     }
 
   def insert(date: String, printPreference: PrintPreference): Future[Result] = {
-    val dtf: DateTimeFormatter = org.joda.time.format.DateTimeFormat.forPattern("yyyy-MM-dd")
+    val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     new UpdatedPrintSuppressionsRepository(
       mongoComponent,
       LocalDate.parse(date, dtf),

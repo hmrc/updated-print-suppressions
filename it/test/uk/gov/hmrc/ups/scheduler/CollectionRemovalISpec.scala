@@ -16,15 +16,15 @@
 
 package uk.gov.hmrc.ups.scheduler
 
-import org.joda.time.LocalDate
-import org.scalatest.{BeforeAndAfterEach, Ignore}
-import org.scalatest.concurrent.{Eventually, IntegrationPatience, ScalaFutures}
+import org.scalatest.{ BeforeAndAfterEach, Ignore }
+import org.scalatest.concurrent.{ Eventually, IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneServerPerSuite
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
-
 import uk.gov.hmrc.mongo.test.MongoSupport
+
+import java.time.LocalDate
 // DO NOT DELETE reactivemongo.play.json.ImplicitBSONHandlers._ even if your IDE tells you it is unnecessary
 import play.api.test.Helpers._
 import uk.gov.hmrc.ups.model.PrintPreference
@@ -35,13 +35,7 @@ import scala.concurrent.Future
 
 @Ignore
 class CollectionRemovalISpec
-    extends PlaySpec
-      with GuiceOneServerPerSuite
-      with ScalaFutures
-      with MongoSupport
-      with IntegrationPatience
-      with Eventually
-      with BeforeAndAfterEach {
+    extends PlaySpec with GuiceOneServerPerSuite with ScalaFutures with MongoSupport with IntegrationPatience with Eventually with BeforeAndAfterEach {
 
   private val expirationPeriod = 3
 
@@ -54,7 +48,7 @@ class CollectionRemovalISpec
         s"Test.scheduling.removeOlderCollections.interval"     -> "24 hours"
       )
       .build()
-  
+
   override def beforeEach(): Unit = {
     super.beforeEach()
     dropDatabase()

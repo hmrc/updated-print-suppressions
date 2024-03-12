@@ -16,6 +16,6 @@
 
 package uk.gov.hmrc.ups.model
 
-import org.joda.time.LocalDate
+import java.time.LocalDate
 
 case class PastLocalDate(value: LocalDate)

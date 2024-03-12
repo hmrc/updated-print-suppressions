@@ -16,14 +16,16 @@
 
 package uk.gov.hmrc.ups.controllers
 
-import org.joda.time.LocalDate
 import org.scalatest.Ignore
 import org.scalatest.concurrent.IntegrationPatience
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.test.Helpers._
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.MongoCounterRepository
+
+import java.time.format.DateTimeFormatter
+import java.time.LocalDate
 
 @Ignore // NOTE INTEGRATION TESTS ARE NOT RUNNING IN THE BUILD PIPELINE
 class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer with IntegrationPatience {
@@ -46,8 +48,8 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       private val ppTwo = PrintPreference("22222222", "someType", List("f1", "f2"))
 
       await(
-        repoYesterday.insert(ppOne, yesterday.toDateTimeAtStartOfDay).flatMap { _ =>
-          repoYesterday.insert(ppTwo, yesterday.toDateTimeAtStartOfDay)
+        repoYesterday.insert(ppOne, yesterdayAtStartOfDay).flatMap { _ =>
+          repoYesterday.insert(ppTwo, yesterdayAtStartOfDay)
         }
       )
 
@@ -69,9 +71,9 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       private val pp3 = PrintPreference("33", "someType", List("f1", "f2"))
 
       await(
-        repoYesterday.insert(pp1, yesterday.toDateTimeAtStartOfDay).flatMap { _ =>
-          repoYesterday.insert(pp2, yesterday.toDateTimeAtStartOfDay).flatMap { _ =>
-            repoYesterday.insert(pp3, yesterday.toDateTimeAtStartOfDay)
+        repoYesterday.insert(pp1, yesterdayAtStartOfDay).flatMap { _ =>
+          repoYesterday.insert(pp2, yesterdayAtStartOfDay).flatMap { _ =>
+            repoYesterday.insert(pp3, yesterdayAtStartOfDay)
           }
         }
       )
@@ -93,8 +95,8 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       private val ppOne = PrintPreference("11111111", "someType", List.empty)
       private val ppTwo = PrintPreference("22222222", "someType", List("f1", "f2"))
       await(
-        repoToday.insert(ppOne, today.toDateTimeAtStartOfDay).flatMap { _ =>
-          repoYesterday.insert(ppTwo, yesterday.toDateTimeAtStartOfDay)
+        repoToday.insert(ppOne, todayAtStartOfDay).flatMap { _ =>
+          repoYesterday.insert(ppTwo, yesterdayAtStartOfDay)
         }
       )
 
@@ -113,7 +115,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       0 to 9 foreach { n =>
-        await(repoYesterday.insert(PrintPreference(s"id_$n", "someType", List.empty), yesterday.toDateTimeAtStartOfDay))
+        await(repoYesterday.insert(PrintPreference(s"id_$n", "someType", List.empty), yesterdayAtStartOfDay))
       }
 
       private val response = get(preferencesSaIndividualPrintSuppression(Some(yesterdayAsString), None, Some("6")))
@@ -128,7 +130,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     "honor the offset when another batch of events is requested" in new TestSetup {
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
-      0 to 9 foreach (n => await(repoYesterday.insert(PrintPreference(s"id_$n", "someType", List.empty), yesterday.toDateTimeAtStartOfDay)))
+      0 to 9 foreach (n => await(repoYesterday.insert(PrintPreference(s"id_$n", "someType", List.empty), yesterdayAtStartOfDay)))
       private val response = get(preferencesSaIndividualPrintSuppression(Some(yesterdayAsString), Some("7"), Some("6")))
 
       private val jsonBody = Json.parse(response.body)
@@ -196,8 +198,9 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "return 400 when the updated-on parameter is not a date in the past" in {
+      val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE
       val response =
-        get(preferencesSaIndividualPrintSuppression(Some(LocalDate.now.toString("yyyy-MM-dd")), None, None))
+        get(preferencesSaIndividualPrintSuppression(Some(dateFormatter.format(LocalDate.now)), None, None))
       response.status mustBe BAD_REQUEST
 
       val jsonBody = Json.parse(response.body)

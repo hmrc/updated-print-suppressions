@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.ups.utils
 
-import uk.gov.hmrc.ups.controllers.bind.LimitBinder
+import play.api.libs.json.{ Format, Reads, Writes }
 
-package object ups {
-  implicit val limitBinder: LimitBinder = new LimitBinder {}
+import java.time.{ Instant, ZoneOffset }
+import java.time.format.DateTimeFormatter
+
+object DateFormats {
+  // Format Instant non-mongo
+  implicit val instantFormats: Format[Instant] = {
+    val dateFormat = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
+    val dateTimeWithMillis: DateTimeFormatter =
+      DateTimeFormatter.ofPattern(dateFormat).withZone(ZoneOffset.UTC)
+
+    Format(Reads.DefaultInstantReads, Writes.temporalWrites[Instant, DateTimeFormatter](dateTimeWithMillis))
+  }
 }

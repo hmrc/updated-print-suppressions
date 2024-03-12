@@ -4,16 +4,18 @@ import uk.gov.hmrc.DefaultBuildSettings._
 
 val appName = "updated-print-suppressions"
 
+Global / majorVersion := 3
+Global / scalaVersion := "2.13.12"
+
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin) // Required to prevent https://github.com/scalatest/scalatest/issues/1427
-  .settings(majorVersion := 3)
   .settings(scalaSettings: _*)
   .settings(defaultSettings(): _*)
   .settings(
-    scalaVersion := "2.13.8",
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     ConfigKey.configurationToKey(Test) / parallelExecution := false,
+    routesGenerator := InjectedRoutesGenerator,
     Test / fork := false,
     retrieveManaged := true,
     scalacOptions ++= List(
@@ -24,14 +26,9 @@ lazy val microservice = Project(appName, file("."))
     )
   )
   .settings(RoutesKeys.routesImport ++= Seq("uk.gov.hmrc.ups.model._"))
-  .configs(IntegrationTest)
-  .settings(integrationTestSettings(): _*)
-  .settings(inConfig(IntegrationTest)(Defaults.itSettings): _*)
-  .settings(
-    IntegrationTest / Keys.fork := false,
-    IntegrationTest / unmanagedSourceDirectories := (IntegrationTest / baseDirectory)(base => Seq(base / "it")).value,
-    addTestReportOption(IntegrationTest, "int-test-reports"),
-    IntegrationTest / parallelExecution := false,
-    routesGenerator := InjectedRoutesGenerator,
-  )
   .settings(ScoverageSettings())
+
+lazy val it = project
+  .enablePlugins(PlayScala, ScalafmtPlugin)
+  .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
+  .settings(libraryDependencies ++= AppDependencies.it)

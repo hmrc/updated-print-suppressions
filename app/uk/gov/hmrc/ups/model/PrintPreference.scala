@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.ups.model
 
-import play.api.libs.json.Json
+import play.api.libs.json.{ Json, OFormat }
 
 case class UpdatedPrintPreferences(pages: Long, next: Option[String], updates: List[PrintPreference])
 
@@ -36,5 +36,5 @@ case class PrintPreference(id: String, idType: String, formIds: List[String]) {
 }
 
 object PrintPreference {
-  implicit val formats = Json.format[PrintPreference]
+  implicit val formats: OFormat[PrintPreference] = Json.format[PrintPreference]
 }

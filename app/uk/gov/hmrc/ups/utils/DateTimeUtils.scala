@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.ups.utils
 
-import org.joda.time._
+import java.time.temporal.ChronoUnit
+import java.time.{ Instant, LocalDate, Period }
 
 trait DateTimeUtils {
-  def now: DateTime = DateTime.now.withZone(DateTimeZone.UTC)
+  def now: Instant = Instant.now().truncatedTo(ChronoUnit.MILLIS)
 
   def daysBetween(start: LocalDate, end: LocalDate): Int =
-    Days.daysBetween(start.toDateTimeAtStartOfDay(DateTimeZone.UTC), end.toDateTimeAtStartOfDay(DateTimeZone.UTC)).getDays
+    Period.between(start, end).getDays
 
   def isEqualOrAfter(date: LocalDate, laterDate: LocalDate): Boolean = date.isEqual(laterDate) || date.isBefore(laterDate)
 }

@@ -17,7 +17,6 @@
 package uk.gov.hmrc.ups.service
 
 import cats.data.EitherT
-import org.joda.time.{ DateTime, LocalDate }
 import play.api.Configuration
 import uk.gov.hmrc.domain.SaUtr
 import uk.gov.hmrc.mongo.MongoComponent
@@ -25,6 +24,7 @@ import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
 
+import java.time.{ Instant, LocalDate }
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
@@ -52,7 +52,7 @@ class UpdatedPrintSuppressionService @Inject()(
   def process(request: NotifySubscriberRequest): EitherT[Future, Throwable, Unit] =
     for {
       pp  <- createPrintPreference(request)
-      res <- insert(pp, new DateTime(request.updatedAt.toEpochMilli))
+      res <- insert(pp, request.updatedAt)
     } yield { res }
 
   private def createPrintPreference(request: NotifySubscriberRequest): EitherT[Future, Throwable, PrintPreference] =
@@ -69,7 +69,7 @@ class UpdatedPrintSuppressionService @Inject()(
       }
     }
 
-  private def insert(pp: PrintPreference, time: DateTime): EitherT[Future, Throwable, Unit] =
+  private def insert(pp: PrintPreference, time: Instant): EitherT[Future, Throwable, Unit] =
     EitherT {
       Try {
         repository()

@@ -19,12 +19,12 @@ package uk.gov.hmrc.ups.controllers.admin
 import org.junit.Ignore
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
-import play.api.libs.json.{JsArray, JsValue, Json}
+import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
-import uk.gov.hmrc.ups.controllers.{TestServer, TestSetup}
+import uk.gov.hmrc.ups.controllers.{ TestServer, TestSetup }
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.{MongoCounterRepository, UpdatedPrintSuppressions}
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
 
 import scala.concurrent.Future
 
@@ -51,7 +51,7 @@ class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterE
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val ppOne = PrintPreference("11111111", "someType", List("f1", "f2"))
-      await(repoToday.insert(ppOne, today.toDateTimeAtStartOfDay))
+      await(repoToday.insert(ppOne, todayAtStartOfDay))
 
       private val response: WSResponse =
         get(preferencesSaIndividualPrintSuppression(Some(todayString), None, None, isAdmin = true))
