@@ -34,7 +34,8 @@ trait EntityResolverStub {
                          |"_id": "${entityId.value}",
                          |"${taxId.name}": "${taxId.value}"
                          |}
-                         |""".stripMargin))
+                         |""".stripMargin)
+        )
     )
 
   def stubGetEntityWithStatus(entityId: EntityId, status: Int): StubMapping =

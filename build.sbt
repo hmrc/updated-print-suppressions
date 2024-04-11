@@ -1,4 +1,3 @@
-import com.lucidchart.sbt.scalafmt.ScalafmtCorePlugin.autoImport._
 import play.sbt.routes.RoutesKeys
 import uk.gov.hmrc.DefaultBuildSettings._
 
@@ -32,3 +31,13 @@ lazy val it = project
   .enablePlugins(PlayScala, ScalafmtPlugin)
   .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
   .settings(libraryDependencies ++= AppDependencies.it)
+
+Test / test := (Test / test)
+  .dependsOn(scalafmtCheckAll)
+  .value
+
+// NOTE: the jenkins build does not currently execute the integration tests 
+
+it / test := (it / Test / test)
+  .dependsOn(itdisabled, scalafmtCheckAll, it/scalafmtCheckAll)
+  .value

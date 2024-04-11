@@ -29,9 +29,9 @@ object MessageDeliveryFormat {
 
   implicit val reads: Reads[MessageDeliveryFormat] =
     Reads[MessageDeliveryFormat] {
-      case JsString(value) if (value == Paper.name)   => JsSuccess(Paper)
-      case JsString(value) if (value == Digital.name) => JsSuccess(Digital)
-      case _                                          => JsError("Invalid message delivery format")
+      case JsString(value) if value == Paper.name   => JsSuccess(Paper)
+      case JsString(value) if value == Digital.name => JsSuccess(Digital)
+      case _                                        => JsError("Invalid message delivery format")
     }
 }
 

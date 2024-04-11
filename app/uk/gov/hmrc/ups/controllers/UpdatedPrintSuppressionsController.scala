@@ -27,7 +27,7 @@ import javax.inject.{ Inject, Singleton }
 import scala.concurrent.ExecutionContext
 
 @Singleton
-class UpdatedPrintSuppressionsController @Inject()(
+class UpdatedPrintSuppressionsController @Inject() (
   updatedOn: UpdatedOn,
   cc: ControllerComponents,
   updatedPrintSuppressionService: UpdatedPrintSuppressionService
@@ -56,9 +56,7 @@ class UpdatedPrintSuppressionsController @Inject()(
               case _: SaUtrNotFoundException => BadRequest("Missing SaUtr")
               case ex                        => InternalServerError(ex.getMessage)
             },
-            _ => {
-              Ok
-            }
+            _ => Ok
           )
       }
     }

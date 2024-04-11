@@ -30,7 +30,8 @@ import java.time.LocalDate
 import scala.concurrent.ExecutionContext
 
 @DoNotDiscover
-class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions] {
+class RandomDataGenerator
+    extends PlaySpec with GuiceOneAppPerSuite with DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions] {
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
@@ -44,22 +45,19 @@ class RandomDataGenerator extends PlaySpec with GuiceOneAppPerSuite with Default
     "create 3M random records in one day" in {
       await(repository.collection.deleteMany(Filters.empty()).toFuture().map(_ => ()))
       0 to 29 foreach { i =>
-        {
-          println(s"Generating records from ${i * BATCH_SIZE} to ${(i * BATCH_SIZE) + BATCH_SIZE}")
-          await(repository.collection.insertMany(generateBatchSizeEntries(i * BATCH_SIZE)).toFuture())
-        }
+        println(s"Generating records from ${i * BATCH_SIZE} to ${(i * BATCH_SIZE) + BATCH_SIZE}")
+        await(repository.collection.insertMany(generateBatchSizeEntries(i * BATCH_SIZE)).toFuture())
       }
     }
 
     def generateBatchSizeEntries(offset: Int): List[UpdatedPrintSuppressions] =
       for (n <- List.range(offset, offset + BATCH_SIZE))
-        yield
-          UpdatedPrintSuppressions(
-            new ObjectId(),
-            n,
-            PrintPreference(s"anId_$n", "anId", List("f1", "f2")),
-            DateTimeUtils.now
-          )
+        yield UpdatedPrintSuppressions(
+          new ObjectId(),
+          n,
+          PrintPreference(s"anId_$n", "anId", List("f1", "f2")),
+          DateTimeUtils.now
+        )
 
   }
 }

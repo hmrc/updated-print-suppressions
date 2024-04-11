@@ -31,8 +31,11 @@ import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponent, date: LocalDate, counterRepo: MongoCounterRepository)(
-  implicit ec: ExecutionContext)
+class UpdatedPrintSuppressionsRepository @Inject() (
+  mongoComponent: MongoComponent,
+  date: LocalDate,
+  counterRepo: MongoCounterRepository
+)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[UpdatedPrintSuppressions](
       mongoComponent,
       UpdatedPrintSuppressions.repoNameTemplate(date),
@@ -43,13 +46,15 @@ class UpdatedPrintSuppressionsRepository @Inject()(mongoComponent: MongoComponen
           IndexOptions()
             .name("counterIdx")
             .unique(true)
-            .sparse(false)),
+            .sparse(false)
+        ),
         IndexModel(
           Indexes.ascending("printPreference.id", "printPreference.idType"),
           IndexOptions()
             .name("uniquePreferenceId")
             .unique(true)
-            .sparse(false))
+            .sparse(false)
+        )
       )
     ) {
   private[this] val logger = Logger(getClass)

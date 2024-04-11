@@ -33,7 +33,8 @@ import java.time.LocalDate
 import scala.concurrent.ExecutionContext
 
 class UpdatedPrintSuppressionServiceISpec
-    extends AnyFreeSpec with Matchers with TestSuite with GuiceOneServerPerSuite with ScalaFutures with IntegrationPatience with MongoSupport with Injecting {
+    extends AnyFreeSpec with Matchers with TestSuite with GuiceOneServerPerSuite with ScalaFutures
+    with IntegrationPatience with MongoSupport with Injecting {
   this: Suite =>
 
   trait Setup {
@@ -42,13 +43,12 @@ class UpdatedPrintSuppressionServiceISpec
 
     private val counterRepository = inject[MongoCounterRepository]
 
-    val repository: UpdatedPrintSuppressionsRepository = {
+    val repository: UpdatedPrintSuppressionsRepository =
       new UpdatedPrintSuppressionsRepository(
         mongoComponent,
         LocalDate.now(),
         counterRepository
       )
-    }
 
     val service = new UpdatedPrintSuppressionService(mongoComponent, counterRepository, config)
   }

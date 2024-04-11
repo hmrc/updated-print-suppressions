@@ -40,8 +40,8 @@ import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsRepository
 import scala.concurrent.ExecutionContext
 
 class UpdatedPrintSuppressionsControllerNotifyISpec
-    extends AnyFreeSpec with Matchers with TestSuite with GuiceOneServerPerSuite with ScalaFutures with IntegrationPatience with MongoSupport
-    with BeforeAndAfterEach with Injecting {
+    extends AnyFreeSpec with Matchers with TestSuite with GuiceOneServerPerSuite with ScalaFutures
+    with IntegrationPatience with MongoSupport with BeforeAndAfterEach with Injecting {
   this: Suite =>
 
   implicit lazy val system: ActorSystem = ActorSystem()

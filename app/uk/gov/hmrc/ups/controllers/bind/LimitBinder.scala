@@ -33,8 +33,8 @@ trait LimitBinder extends QueryStringBindable[Limit] {
           case limit if limit > Limit.max.value => Left(s"limit parameter cannot be bigger than ${Limit.max.value}")
           case limit                            => Right(Limit(limit))
         }
-      } recover {
-        case _: Exception => Left("Cannot parse parameter limit as Int")
+      } recover { case _: Exception =>
+        Left("Cannot parse parameter limit as Int")
       } get
     }
 

@@ -26,7 +26,8 @@ import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import scala.concurrent.ExecutionContext
 
 class MongoCounterRepositorySpec
-    extends PlaySpec with DefaultPlayMongoRepositorySupport[Counter] with BeforeAndAfterEach with ScalaFutures with IntegrationPatience {
+    extends PlaySpec with DefaultPlayMongoRepositorySupport[Counter] with BeforeAndAfterEach with ScalaFutures
+    with IntegrationPatience {
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 

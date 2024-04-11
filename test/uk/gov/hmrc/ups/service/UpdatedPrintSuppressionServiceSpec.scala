@@ -34,7 +34,8 @@ import java.time.Instant
 import scala.concurrent.{ ExecutionContext, Future }
 
 class UpdatedPrintSuppressionServiceSpec
-    extends PlaySpec with ScalaFutures with BeforeAndAfterEach with IntegrationPatience with MockitoSugar with EitherValues {
+    extends PlaySpec with ScalaFutures with BeforeAndAfterEach with IntegrationPatience with MockitoSugar
+    with EitherValues {
 
   trait Setup {
     implicit val ec: ExecutionContext = ExecutionContext.Implicits.global

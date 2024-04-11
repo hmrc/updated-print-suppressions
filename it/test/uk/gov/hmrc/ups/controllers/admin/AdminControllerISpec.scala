@@ -38,7 +38,8 @@ class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterE
       await(
         wsUrl("/preferences/sa/individual/print-suppression")
           .withQueryStringParameters("date" -> yesterdayAsString)
-          .post(Json.toJson(preference)))
+          .post(Json.toJson(preference))
+      )
 
       private val all: Future[Seq[UpdatedPrintSuppressions]] = repoYesterday.collection.find().toFuture()
 

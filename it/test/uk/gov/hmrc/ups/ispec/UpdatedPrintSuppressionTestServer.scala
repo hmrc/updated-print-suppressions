@@ -35,8 +35,9 @@ import java.time.{ LocalDate, LocalDateTime }
 import java.time.format.DateTimeFormatter
 
 abstract class UpdatedPrintSuppressionTestServer(override val databaseName: String = "updated-print-suppression-ispec")
-    extends PlaySpec with MongoSupport with Eventually with BeforeAndAfterEach with PreferencesStub with EntityResolverStub with ScalaFutures
-    with BeforeAndAfterAll with IntegrationPatience with GuiceOneServerPerSuite {
+    extends PlaySpec with MongoSupport with Eventually with BeforeAndAfterEach with PreferencesStub
+    with EntityResolverStub with ScalaFutures with BeforeAndAfterAll with IntegrationPatience
+    with GuiceOneServerPerSuite {
 
   private val logger = Logger(getClass)
 
@@ -75,7 +76,8 @@ abstract class UpdatedPrintSuppressionTestServer(override val databaseName: Stri
         .createCollection(
           repoName
         )
-        .toFuture())
+        .toFuture()
+    )
     mongoComponent.database.getCollection[UpdatedPrintSuppressions](repoName)
   }
   lazy val stubPort = 11111

@@ -28,14 +28,19 @@ import scala.concurrent.{ ExecutionContext, Future }
 
 // $COVERAGE-OFF$
 @Singleton
-class UpsMain @Inject()(actorSystem: ActorSystem, configuration: Configuration, lifecycle: ApplicationLifecycle, scheduledJobs: Seq[ScheduledJob])(
-  implicit val ec: ExecutionContext) {
+class UpsMain @Inject() (
+  actorSystem: ActorSystem,
+  configuration: Configuration,
+  lifecycle: ApplicationLifecycle,
+  scheduledJobs: Seq[ScheduledJob]
+)(implicit val ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
   lifecycle.addStopHook(() =>
     Future {
       actorSystem.terminate()
-  })
+    }
+  )
 
   scheduledJobs.foreach(startScheduleJob)
 

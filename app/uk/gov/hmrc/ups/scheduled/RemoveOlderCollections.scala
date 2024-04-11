@@ -34,8 +34,11 @@ trait RemoveOlderCollections extends DeleteCollectionFilter with SelectAndRemove
 
 trait SelectAndRemove {
 
-  def compose(listCollections: () => Future[List[String]], expireCollection: String => Future[Unit], filter: String => Boolean)(
-    implicit ec: ExecutionContext): Future[Totals] =
+  def compose(
+    listCollections: () => Future[List[String]],
+    expireCollection: String => Future[Unit],
+    filter: String => Boolean
+  )(implicit ec: ExecutionContext): Future[Totals] =
     listCollections().flatMap { names =>
       Future.foldLeft(
         names.filter(filter).map { name =>

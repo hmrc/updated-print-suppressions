@@ -23,7 +23,7 @@ import scala.concurrent.duration._
 
 // $COVERAGE-OFF$
 @Singleton
-class RunModeBridge @Inject()(configuration: Configuration) {
+class RunModeBridge @Inject() (configuration: Configuration) {
 
   def getStringForMode(suffix: String): String =
     configuration
