@@ -39,5 +39,5 @@ Test / test := (Test / test)
 // NOTE: the jenkins build does not currently execute the integration tests 
 
 it / test := (it / Test / test)
-  .dependsOn(itdisabled, scalafmtCheckAll, it/scalafmtCheckAll)
+  .dependsOn(scalafmtCheckAll, it/scalafmtCheckAll)
   .value
