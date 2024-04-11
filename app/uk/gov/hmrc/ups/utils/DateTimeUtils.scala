@@ -25,7 +25,8 @@ trait DateTimeUtils {
   def daysBetween(start: LocalDate, end: LocalDate): Int =
     Period.between(start, end).getDays
 
-  def isEqualOrAfter(date: LocalDate, laterDate: LocalDate): Boolean = date.isEqual(laterDate) || date.isBefore(laterDate)
+  def isEqualOrAfter(date: LocalDate, laterDate: LocalDate): Boolean =
+    date.isEqual(laterDate) || date.isBefore(laterDate)
 }
 
 object DateTimeUtils extends DateTimeUtils

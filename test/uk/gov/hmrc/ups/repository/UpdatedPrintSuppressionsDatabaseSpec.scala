@@ -50,7 +50,10 @@ class UpdatedPrintSuppressionsDatabaseSpec extends PlaySpec with ScalaFutures wi
           )
         )
       )
-      updatedPrintSuppressionsDatabase.upsCollectionNames.futureValue must contain.only(upsCollectionName1, upsCollectionName2)
+      updatedPrintSuppressionsDatabase.upsCollectionNames.futureValue must contain.only(
+        upsCollectionName1,
+        upsCollectionName2
+      )
     }
   }
 

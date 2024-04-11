@@ -123,14 +123,18 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       private val jsonBody: JsValue = Json.parse(response.body)
       (jsonBody \ "pages").as[Int] mustBe 2
       (jsonBody \ "next")
-        .as[String] mustBe s"/preferences/sa/individual/print-suppression?offset=7&limit=6&updated-on=$yesterdayAsString"
+        .as[
+          String
+        ] mustBe s"/preferences/sa/individual/print-suppression?offset=7&limit=6&updated-on=$yesterdayAsString"
       (jsonBody \ "updates").as[JsArray].value.size mustBe 6
     }
 
     "honor the offset when another batch of events is requested" in new TestSetup {
       lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
-      0 to 9 foreach (n => await(repoYesterday.insert(PrintPreference(s"id_$n", "someType", List.empty), yesterdayAtStartOfDay)))
+      0 to 9 foreach (n =>
+        await(repoYesterday.insert(PrintPreference(s"id_$n", "someType", List.empty), yesterdayAtStartOfDay))
+      )
       private val response = get(preferencesSaIndividualPrintSuppression(Some(yesterdayAsString), Some("7"), Some("6")))
 
       private val jsonBody = Json.parse(response.body)

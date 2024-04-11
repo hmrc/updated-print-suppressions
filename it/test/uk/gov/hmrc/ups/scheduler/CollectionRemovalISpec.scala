@@ -35,7 +35,8 @@ import scala.concurrent.Future
 
 @Ignore
 class CollectionRemovalISpec
-    extends PlaySpec with GuiceOneServerPerSuite with ScalaFutures with MongoSupport with IntegrationPatience with Eventually with BeforeAndAfterEach {
+    extends PlaySpec with GuiceOneServerPerSuite with ScalaFutures with MongoSupport with IntegrationPatience
+    with Eventually with BeforeAndAfterEach {
 
   private val expirationPeriod = 3
 

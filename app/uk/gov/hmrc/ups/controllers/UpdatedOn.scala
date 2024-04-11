@@ -32,7 +32,9 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
-class UpdatedOn @Inject()(mongoComponent: MongoComponent, counterRepository: MongoCounterRepository)(implicit ec: ExecutionContext) {
+class UpdatedOn @Inject() (mongoComponent: MongoComponent, counterRepository: MongoCounterRepository)(implicit
+  ec: ExecutionContext
+) {
 
   implicit val uppf: OFormat[UpdatedPrintPreferences] = UpdatedPrintPreferences.formats
 
@@ -40,7 +42,8 @@ class UpdatedOn @Inject()(mongoComponent: MongoComponent, counterRepository: Mon
     optOffset: Option[Int],
     optLimit: Option[Limit],
     maybeUpdatedOn: Option[Either[String, PastLocalDate]],
-    localDateBinder: QueryStringBindable[PastLocalDate]): Future[Result] =
+    localDateBinder: QueryStringBindable[PastLocalDate]
+  ): Future[Result] =
     maybeUpdatedOn match {
       case Some(Right(updatedOn)) =>
         val upsRepository =
@@ -71,7 +74,8 @@ class UpdatedOn @Inject()(mongoComponent: MongoComponent, counterRepository: Mon
     limit: Limit,
     count: Long,
     offset: Int,
-    localDateBinder: QueryStringBindable[PastLocalDate]): Option[String] =
+    localDateBinder: QueryStringBindable[PastLocalDate]
+  ): Option[String] =
     if (count > offset + limit.value) {
       Some(
         routes.UpdatedPrintSuppressionsController
@@ -79,7 +83,8 @@ class UpdatedOn @Inject()(mongoComponent: MongoComponent, counterRepository: Mon
             offset = Some(offset + limit.value),
             limit = Some(limit)
           )
-          .url + s"&${localDateBinder.unbind("updated-on", updatedOn)}")
+          .url + s"&${localDateBinder.unbind("updated-on", updatedOn)}"
+      )
     } else {
       None
     }

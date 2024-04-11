@@ -21,12 +21,13 @@ import java.time.{ Instant, LocalDate }
 
 trait DateConverter {
 
-  //yyyy-MM-dd
+  // yyyy-MM-dd
   lazy val dateFormatter: DateTimeFormatter = DateTimeFormatter.ISO_DATE
 
   final def parseToLocalDate(date: String): LocalDate = LocalDate.parse(date, dateFormatter)
 
-  final def formatToString(date: Long): String = dateFormatter.format(Instant.ofEpochMilli(date)) //new Instant(date, DateTimeZone.UTC).toString(dateFormatter)
+  final def formatToString(date: Long): String =
+    dateFormatter.format(Instant.ofEpochMilli(date)) // new Instant(date, DateTimeZone.UTC).toString(dateFormatter)
 
   final def formatToString(date: Instant): String = dateFormatter.format(date)
 

@@ -22,7 +22,7 @@ import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class UpdatedPrintSuppressionsDatabase @Inject()(mongoComponent: MongoComponent) {
+class UpdatedPrintSuppressionsDatabase @Inject() (mongoComponent: MongoComponent) {
 
   def dropCollection(collectionName: String)(implicit ec: ExecutionContext): Future[Unit] =
     mongoComponent.database.getCollection(collectionName).drop().toFuture().map(_ => ())

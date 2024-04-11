@@ -54,14 +54,17 @@ trait PreferencesStub {
         .withRequestBody(
           equalToJson(
             Json.stringify(Json.obj("status" -> expectedStatus.name))
-            //JSONCompareMode.LENIENT
+            // JSONCompareMode.LENIENT
           )
         )
         .willReturn(aResponse().withStatus(httpStatusCode))
         .willSetStateTo(expectedStatus.name)
     )
 
-  def stubPullUpdatedPrintSuppressionWithNoResponseBody(expectedStatus: ProcessingStatus, expectedHttpStatus: Int = Status.NO_CONTENT): StubMapping =
+  def stubPullUpdatedPrintSuppressionWithNoResponseBody(
+    expectedStatus: ProcessingStatus,
+    expectedHttpStatus: Int = Status.NO_CONTENT
+  ): StubMapping =
     stubFor(
       post(urlMatching("/preferences/updated-print-suppression/pull-work-item"))
         .inScenario("ALL")

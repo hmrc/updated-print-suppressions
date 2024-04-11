@@ -37,13 +37,13 @@ class DateFormatsSpec extends AnyWordSpec with ScalaFutures {
       val result = DateFormats.instantFormats.reads(JsString("2024-03-12W15:00:00.000Z"))
       result match {
         case JsSuccess(value, _) => fail("Should fail to read")
-        case JsError(err)        => err(0)._2(0).message mustBe ("error.expected.date.isoformat")
+        case JsError(err)        => err(0)._2(0).message mustBe "error.expected.date.isoformat"
       }
     }
     "write" in {
       val inst = Instant.parse("2024-03-12T16:01:02.003Z")
       val str = DateFormats.instantFormats.writes(inst)
-      str.as[String] mustBe ("2024-03-12T16:01:02.003Z")
+      str.as[String] mustBe "2024-03-12T16:01:02.003Z"
     }
   }
 

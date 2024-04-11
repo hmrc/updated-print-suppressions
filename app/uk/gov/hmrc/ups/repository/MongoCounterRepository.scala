@@ -24,7 +24,7 @@ import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class MongoCounterRepository @Inject()(mongo: MongoComponent)(implicit ec: ExecutionContext)
+class MongoCounterRepository @Inject() (mongo: MongoComponent)(implicit ec: ExecutionContext)
     extends PlayMongoRepository[Counter](
       mongo,
       "counters",
@@ -35,7 +35,9 @@ class MongoCounterRepository @Inject()(mongo: MongoComponent)(implicit ec: Execu
           IndexOptions()
             .name("nameIdx")
             .unique(true)
-            .sparse(false))),
+            .sparse(false)
+        )
+      ),
       replaceIndexes = false
     ) with CounterRepository {
 

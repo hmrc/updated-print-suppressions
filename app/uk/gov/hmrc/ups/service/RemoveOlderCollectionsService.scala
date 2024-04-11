@@ -27,7 +27,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.duration.FiniteDuration
 
 @Singleton
-class RemoveOlderCollectionsService @Inject()(
+class RemoveOlderCollectionsService @Inject() (
   configuration: Configuration,
   updatedPrintSuppressionsDatabase: UpdatedPrintSuppressionsDatabase
 )(implicit ec: ExecutionContext)

@@ -30,7 +30,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success, Try }
 
 @Singleton
-class UpdatedPrintSuppressionService @Inject()(
+class UpdatedPrintSuppressionService @Inject() (
   mongoComponent: MongoComponent,
   mongoCounterRepository: MongoCounterRepository,
   configuration: Configuration
@@ -53,7 +53,7 @@ class UpdatedPrintSuppressionService @Inject()(
     for {
       pp  <- createPrintPreference(request)
       res <- insert(pp, request.updatedAt)
-    } yield { res }
+    } yield res
 
   private def createPrintPreference(request: NotifySubscriberRequest): EitherT[Future, Throwable, PrintPreference] =
     EitherT {

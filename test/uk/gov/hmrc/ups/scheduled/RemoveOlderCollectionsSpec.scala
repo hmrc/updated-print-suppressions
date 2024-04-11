@@ -35,23 +35,31 @@ class RemoveOlderCollectionsSpec extends PlaySpec with ScalaFutures {
       }.toList
 
       private val totals =
-        compose(() => listRepoNames(), removeRepoColls(expectedResults, _), filterUpsCollectionsOnly(_, expirationPeriod)).futureValue
+        compose(
+          () => listRepoNames(),
+          removeRepoColls(expectedResults, _),
+          filterUpsCollectionsOnly(_, expirationPeriod)
+        ).futureValue
 
       totals.failures mustBe List.empty
-      totals.successes.map { _.collectionName } must contain only (expectedResults: _*)
+      totals.successes.map(_.collectionName) must contain only (expectedResults: _*)
     }
 
     "perform no deletions when provided an empty list of names" in new SetUp {
       compose(
         () => Future.successful(List.empty[String]),
-        _ => Future { () },
+        _ => Future(()),
         filterUpsCollectionsOnly(_, 0.days)
       ).futureValue mustBe Totals(List.empty, List.empty)
     }
 
     "removes collections independently, allowing for partial success" in new SetUp {
       val (failures, successes) =
-        compose(() => listRepoNames(), removeRepoColls(List(repoName(3)), _), filterUpsCollectionsOnly(_, expirationPeriod)).map { totals =>
+        compose(
+          () => listRepoNames(),
+          removeRepoColls(List(repoName(3)), _),
+          filterUpsCollectionsOnly(_, expirationPeriod)
+        ).map { totals =>
           (totals.failures.map(_.collectionName), totals.successes.map(_.collectionName))
         }.futureValue
 
@@ -68,7 +76,8 @@ class RemoveOlderCollectionsSpec extends PlaySpec with ScalaFutures {
       }.toList)
 
     def removeRepoColls(successfulNames: List[String], valueToCheck: String) =
-      if (successfulNames.contains(valueToCheck)) Future { () } else
+      if (successfulNames.contains(valueToCheck)) Future(())
+      else
         Future.failed(new RuntimeException(s"unexpected value $valueToCheck"))
   }
 }

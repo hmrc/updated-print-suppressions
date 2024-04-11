@@ -32,12 +32,16 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 trait TestServer
-    extends AnyWordSpec with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite with WsScalaTestClient with BeforeAndAfterEach
-    with MongoSupport {
+    extends AnyWordSpec with ScalaFutures with IntegrationPatience with GuiceOneServerPerSuite with WsScalaTestClient
+    with BeforeAndAfterEach with MongoSupport {
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder(environment = Environment.simple(mode = applicationMode.getOrElse(Mode.Test)))
-      .configure(s"mongodb.uri" -> serviceMongoUri, "play.http.router" -> "testOnlyDoNotUseInAppConf.Routes", "metrics.jvm" -> false)
+      .configure(
+        s"mongodb.uri"     -> serviceMongoUri,
+        "play.http.router" -> "testOnlyDoNotUseInAppConf.Routes",
+        "metrics.jvm"      -> false
+      )
       .build()
 
   def serviceMongoUri =
@@ -60,12 +64,17 @@ trait TestServer
   override def beforeEach(): Unit =
     SharedMetricRegistries.clear()
 
-  def preferencesSaIndividualPrintSuppression(updatedOn: Option[String], offset: Option[String], limit: Option[String], isAdmin: Boolean = false): WSRequest = {
+  def preferencesSaIndividualPrintSuppression(
+    updatedOn: Option[String],
+    offset: Option[String],
+    limit: Option[String],
+    isAdmin: Boolean = false
+  ): WSRequest = {
 
     val queryString = Seq(
       updatedOn.map(value => "updated-on" -> value),
-      offset.map(value => "offset"        -> value),
-      limit.map(value => "limit"          -> value)
+      offset.map(value => "offset" -> value),
+      limit.map(value => "limit" -> value)
     ).flatten
 
     if (isAdmin) {

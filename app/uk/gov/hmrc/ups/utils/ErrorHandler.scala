@@ -30,7 +30,11 @@ import uk.gov.hmrc.play.bootstrap.backend.http.ErrorResponse
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ErrorHandler @Inject()(auditConnector: AuditConnector, httpAuditEvent: HttpAuditEvent, configuration: Configuration)(implicit ec: ExecutionContext)
+class ErrorHandler @Inject() (
+  auditConnector: AuditConnector,
+  httpAuditEvent: HttpAuditEvent,
+  configuration: Configuration
+)(implicit ec: ExecutionContext)
     extends JsonErrorHandler(auditConnector, httpAuditEvent, configuration) {
 
   import httpAuditEvent.dataEvent

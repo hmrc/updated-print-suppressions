@@ -28,11 +28,11 @@ import scala.concurrent.duration.Duration
 
 // $COVERAGE-OFF$Disabling
 @Singleton
-class RemoveOlderCollectionsJob @Inject()(
+class RemoveOlderCollectionsJob @Inject() (
   removeOlderCollectionsService: RemoveOlderCollectionsService,
   lockRepository: LockRepository,
-  override val runModeBridge: RunModeBridge)
-    extends LockedScheduledJob {
+  override val runModeBridge: RunModeBridge
+) extends LockedScheduledJob {
 
   val logger: Logger = Logger(this.getClass)
 

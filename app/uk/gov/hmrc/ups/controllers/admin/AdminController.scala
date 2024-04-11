@@ -27,7 +27,8 @@ import uk.gov.hmrc.ups.model.{ Limit, PastLocalDate, PrintPreference }
 import javax.inject.{ Inject, Singleton }
 
 @Singleton
-class AdminController @Inject()(updatedOn: UpdatedOn, cc: ControllerComponents) extends BackendController(cc) with WithJsonBody {
+class AdminController @Inject() (updatedOn: UpdatedOn, cc: ControllerComponents)
+    extends BackendController(cc) with WithJsonBody {
 
   val localDateBinder: QueryStringBindable[PastLocalDate] = PastLocalDateBindable(false)
 

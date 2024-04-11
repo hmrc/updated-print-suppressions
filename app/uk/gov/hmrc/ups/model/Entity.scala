@@ -38,8 +38,9 @@ object Entity {
 
   val writes = new Writes[Entity] {
     override def writes(entity: Entity): JsValue = {
-      val jsonEntries = entity.taxIdentifiers.foldLeft(Seq[(String, JsValueWrapper)]("_id" -> entity.id)) { (entries, taxId) =>
-        entries :+ Tuple2[String, JsValueWrapper](taxId.name, taxId.value)
+      val jsonEntries = entity.taxIdentifiers.foldLeft(Seq[(String, JsValueWrapper)]("_id" -> entity.id)) {
+        (entries, taxId) =>
+          entries :+ Tuple2[String, JsValueWrapper](taxId.name, taxId.value)
       }
       Json.obj(jsonEntries: _*)
     }

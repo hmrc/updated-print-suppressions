@@ -30,7 +30,8 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.reflectiveCalls
 
 class UpdatedPrintSuppressionsRepositorySpec
-    extends PlaySpec with DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions] with BeforeAndAfterEach with ScalaFutures with IntegrationPatience {
+    extends PlaySpec with DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions] with BeforeAndAfterEach
+    with ScalaFutures with IntegrationPatience {
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
@@ -71,7 +72,7 @@ class UpdatedPrintSuppressionsRepositorySpec
       repository.insert(ppTwo, now).futureValue
 
       val all: Future[Seq[UpdatedPrintSuppressions]] = repository.collection.find().toFuture()
-      all.futureValue.map { toCounterAndPreference } mustBe List((0, ppOne, now), (1, ppTwo, now))
+      all.futureValue.map(toCounterAndPreference) mustBe List((0, ppOne, now), (1, ppTwo, now))
     }
 
     "find and return all records within a range" in {
@@ -94,7 +95,7 @@ class UpdatedPrintSuppressionsRepositorySpec
       repository.insert(preferenceWithSameId, now.plusMillis(1)).futureValue
 
       val all = repository.collection.find().toFuture()
-      all.futureValue.map { toCounterAndPreference } mustBe List((0, preferenceWithSameId, now.plusMillis(1)))
+      all.futureValue.map(toCounterAndPreference) mustBe List((0, preferenceWithSameId, now.plusMillis(1)))
     }
 
     "duplicate keys due to race conditions are recoverable" in {
