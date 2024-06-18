@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.ups.controllers
 
+import cats.data.EitherT
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.util.Timeout
-import cats.data.EitherT
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ reset, when }
 import org.scalatest.BeforeAndAfterEach
@@ -34,7 +34,7 @@ import uk.gov.hmrc.ups.model.NotifySubscriberRequest
 import uk.gov.hmrc.ups.service.{ SaUtrNotFoundException, UpdatedPrintSuppressionService }
 import uk.gov.hmrc.ups.utils.DateTimeUtils
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.concurrent.ExecutionContext.global
 import scala.concurrent.duration.DurationInt
 
@@ -74,7 +74,7 @@ class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with ScalaFutures 
            |}""".stripMargin
 
       when(upsService.process(any[NotifySubscriberRequest]))
-        .thenReturn(EitherT.rightT(()))
+        .thenReturn(EitherT.rightT[Future, Unit](()))
 
       val request = createRequest(reqBody)
       val result = controller.notifySubscriber()(request).futureValue
@@ -90,7 +90,7 @@ class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with ScalaFutures 
            |}""".stripMargin
 
       when(upsService.process(any[NotifySubscriberRequest]))
-        .thenReturn(EitherT.leftT(new SaUtrNotFoundException))
+        .thenReturn(EitherT.leftT[Future, Throwable](new SaUtrNotFoundException))
 
       val request = createRequest(reqBody)
       val result = controller.notifySubscriber()(request).futureValue
@@ -107,7 +107,7 @@ class UpdatedPrintSuppressionsControllerSpec extends PlaySpec with ScalaFutures 
            |}""".stripMargin
 
       when(upsService.process(any[NotifySubscriberRequest]))
-        .thenReturn(EitherT.leftT(new RuntimeException("whatever")))
+        .thenReturn(EitherT.leftT[Future, Throwable](new RuntimeException("whatever")))
 
       val request = createRequest(reqBody)
       val result = controller.notifySubscriber()(request)

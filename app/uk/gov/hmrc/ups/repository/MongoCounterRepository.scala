@@ -17,6 +17,7 @@
 package uk.gov.hmrc.ups.repository
 
 import org.mongodb.scala.model._
+import org.mongodb.scala.SingleObservableFuture
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 

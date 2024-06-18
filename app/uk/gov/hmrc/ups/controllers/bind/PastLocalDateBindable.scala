@@ -28,7 +28,7 @@ case class PastLocalDateBindable(shouldValidatePastDate: Boolean) extends QueryS
   import scala.language.postfixOps
 
   def bind(key: String, params: Map[String, Seq[String]]): Option[Either[String, PastLocalDate]] =
-    params.get(key).flatMap(_.headOption).map { date: String =>
+    params.get(key).flatMap(_.headOption).map { date =>
       Try {
         DateConverter.parseToLocalDate(date) match {
           case aDate if !shouldValidatePastDate                                 => Right(PastLocalDate(aDate))

@@ -17,7 +17,7 @@
 package uk.gov.hmrc.ups.utils
 
 import org.scalatest.concurrent.ScalaFutures
-import org.scalatest.matchers.must.Matchers.convertToAnyMustWrapper
+import org.scalatest.matchers.must.Matchers.mustBe
 import org.scalatest.wordspec.AnyWordSpec
 import play.api.libs.json.{ JsError, JsString, JsSuccess }
 

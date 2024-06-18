@@ -17,7 +17,7 @@
 package uk.gov.hmrc.ups.repository
 
 import uk.gov.hmrc.mongo.MongoComponent
-
+import org.mongodb.scala.ObservableFuture
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 

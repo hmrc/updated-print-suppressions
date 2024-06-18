@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ups.scheduler
 
+import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.{ BeforeAndAfterEach, Ignore }
 import org.scalatest.concurrent.{ Eventually, IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec

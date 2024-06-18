@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ups.repository
 
+import org.mongodb.scala.{ ObservableFuture, SingleObservableFuture }
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec

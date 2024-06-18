@@ -42,7 +42,7 @@ class RemoveOlderCollectionsSpec extends PlaySpec with ScalaFutures {
         ).futureValue
 
       totals.failures mustBe List.empty
-      totals.successes.map(_.collectionName) must contain only (expectedResults: _*)
+      totals.successes.map(_.collectionName) must contain theSameElementsAs expectedResults
     }
 
     "perform no deletions when provided an empty list of names" in new SetUp {

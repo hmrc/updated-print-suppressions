@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ups.service
 
+import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatest.freespec.AnyFreeSpec
 import org.scalatest.matchers.must.Matchers
