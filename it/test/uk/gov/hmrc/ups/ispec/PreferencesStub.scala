@@ -54,7 +54,6 @@ trait PreferencesStub {
         .withRequestBody(
           equalToJson(
             Json.stringify(Json.obj("status" -> expectedStatus.name))
-            // JSONCompareMode.LENIENT
           )
         )
         .willReturn(aResponse().withStatus(httpStatusCode))

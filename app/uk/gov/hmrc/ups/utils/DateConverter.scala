@@ -27,7 +27,7 @@ trait DateConverter {
   final def parseToLocalDate(date: String): LocalDate = LocalDate.parse(date, dateFormatter)
 
   final def formatToString(date: Long): String =
-    dateFormatter.format(Instant.ofEpochMilli(date)) // new Instant(date, DateTimeZone.UTC).toString(dateFormatter)
+    dateFormatter.format(Instant.ofEpochMilli(date))
 
   final def formatToString(date: Instant): String = dateFormatter.format(date)
 
