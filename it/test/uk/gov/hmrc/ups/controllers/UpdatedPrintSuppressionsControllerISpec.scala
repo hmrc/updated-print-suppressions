@@ -33,7 +33,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
   "list" should {
 
     "return an empty list when there are no print suppression change events for that day" in new TestSetup {
-      lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
+      override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val response = get(preferencesSaIndividualPrintSuppression(Some(yesterdayAsString), None, None))
       private val jsonBody = Json.parse(response.body)
@@ -42,7 +42,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "return all available print suppression change events occurred that day" in new TestSetup {
-      lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
+      override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val ppOne = PrintPreference("11111111", "someType", List.empty)
       private val ppTwo = PrintPreference("22222222", "someType", List("f1", "f2"))
@@ -64,7 +64,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "return 'utr' instead of 'sautr' as idType for all available print suppression change events occurred that day" in new TestSetup {
-      lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
+      override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val pp1 = PrintPreference("11", "sautr", List("ABC"))
       private val pp2 = PrintPreference("22", "utr", List("f1", "f2"))
@@ -90,7 +90,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "not return print suppression change events occurred on another day" in new TestSetup {
-      lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
+      override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val ppOne = PrintPreference("11111111", "someType", List.empty)
       private val ppTwo = PrintPreference("22222222", "someType", List("f1", "f2"))
@@ -112,7 +112,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "limit the number of events returned and a the path to next batch of events" in new TestSetup {
-      lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
+      override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       0 to 9 foreach { n =>
         await(repoYesterday.insert(PrintPreference(s"id_$n", "someType", List.empty), yesterdayAtStartOfDay))
@@ -130,7 +130,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "honor the offset when another batch of events is requested" in new TestSetup {
-      lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
+      override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       0 to 9 foreach (n =>
         await(repoYesterday.insert(PrintPreference(s"id_$n", "someType", List.empty), yesterdayAtStartOfDay))
@@ -144,7 +144,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
     }
 
     "allow a big number as an offset" in new TestSetup {
-      lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
+      override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val response = get(preferencesSaIndividualPrintSuppression(Some(yesterdayAsString), Some("50000"), None))
       response.status mustBe OK

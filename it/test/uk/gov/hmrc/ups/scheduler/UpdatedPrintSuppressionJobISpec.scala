@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ups.scheduler
 
+import org.mongodb.scala.SingleObservableFuture
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.http.Fault
 import com.github.tomakehurst.wiremock.stubbing.Scenario

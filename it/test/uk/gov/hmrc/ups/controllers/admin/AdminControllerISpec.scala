@@ -16,12 +16,16 @@
 
 package uk.gov.hmrc.ups.controllers.admin
 
+import org.mongodb.scala.ObservableFuture
 import org.junit.Ignore
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsArray, JsValue, Json }
 import play.api.libs.ws.WSResponse
 import play.api.test.Helpers._
+//import play.api.libs.ws.JsonBodyWritables.writeableOf_JsValue
+//import play.api.libs.ws.WSBodyWritables.writeableOf_JsValue
+import play.api.libs.ws.writeableOf_JsValue
 import uk.gov.hmrc.ups.controllers.{ TestServer, TestSetup }
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions }
@@ -33,7 +37,7 @@ class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterE
 
   "AdminController" should {
     "insert a new PrintPreference" ignore new TestSetup {
-      lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
+      override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
       private val preference = PrintPreference("someId", "someType", List("f1"))
       await(
         wsUrl("/preferences/sa/individual/print-suppression")
@@ -49,7 +53,7 @@ class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterE
     }
 
     "fetch a new PrintPreference created today using admin end-point" ignore new TestSetup {
-      lazy override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
+      override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val ppOne = PrintPreference("11111111", "someType", List("f1", "f2"))
       await(repoToday.insert(ppOne, todayAtStartOfDay))
