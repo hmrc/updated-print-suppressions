@@ -19,7 +19,6 @@ package uk.gov.hmrc.ups.controllers
 import cats.data.EitherT
 import org.apache.pekko.actor.ActorSystem
 import org.apache.pekko.util.Timeout
-import cats.syntax.either.*
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ reset, when }
 import org.scalatest.BeforeAndAfterEach

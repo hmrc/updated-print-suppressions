@@ -22,7 +22,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec
 import play.api.test.Helpers.*
-import uk.gov.hmrc.mongo.test.{ DefaultPlayMongoRepositorySupport, MongoSupport }
+import uk.gov.hmrc.mongo.test.MongoSupport
 
 import scala.concurrent.ExecutionContext
 

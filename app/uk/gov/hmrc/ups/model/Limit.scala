@@ -18,8 +18,6 @@ package uk.gov.hmrc.ups.model
 
 import play.api.mvc.QueryStringBindable
 
-import scala.util.Try
-
 case class Limit(value: Int)
 
 object Limit {

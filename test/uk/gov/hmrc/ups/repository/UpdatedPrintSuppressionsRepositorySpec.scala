@@ -22,7 +22,7 @@ import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.test.{ DefaultPlayMongoRepositorySupport, MongoSupport }
+import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.utils.DateTimeUtils
 

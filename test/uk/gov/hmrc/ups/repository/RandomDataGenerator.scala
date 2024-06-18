@@ -18,7 +18,7 @@ package uk.gov.hmrc.ups.repository
 
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.Filters
-import org.mongodb.scala.{ ObservableFuture, SingleObservableFuture }
+import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.DoNotDiscover
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
