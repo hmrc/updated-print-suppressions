@@ -4,7 +4,7 @@ import uk.gov.hmrc.DefaultBuildSettings._
 val appName = "updated-print-suppressions"
 
 Global / majorVersion := 3
-Global / scalaVersion := "2.13.12"
+Global / scalaVersion := "3.3.3"
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)

@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc
 
-import uk.gov.hmrc.ups.controllers.bind.LimitBinder
-
-package object ups {
-  implicit val limitBinder: LimitBinder = new LimitBinder {}
-}
+//import uk.gov.hmrc.ups.controllers.bind.LimitBinder
+//
+//package object ups {
+//  implicit val limitBinder: LimitBinder = new LimitBinder {}
+//}

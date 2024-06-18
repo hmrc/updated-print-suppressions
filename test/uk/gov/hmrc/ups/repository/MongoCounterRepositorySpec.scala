@@ -17,23 +17,21 @@
 package uk.gov.hmrc.ups.repository
 
 import org.mongodb.scala.model.Filters
+import org.mongodb.scala.{ ObservableFuture, SingleObservableFuture }
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec
-import play.api.test.Helpers._
-import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
+import play.api.test.Helpers.*
+import uk.gov.hmrc.mongo.test.{ DefaultPlayMongoRepositorySupport, MongoSupport }
 
 import scala.concurrent.ExecutionContext
 
 class MongoCounterRepositorySpec
-    extends PlaySpec with DefaultPlayMongoRepositorySupport[Counter] with BeforeAndAfterEach with ScalaFutures
-    with IntegrationPatience {
+    extends PlaySpec with MongoSupport with BeforeAndAfterEach with ScalaFutures with IntegrationPatience {
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
-  override protected def checkTtlIndex: Boolean = false
-
-  override protected val repository = new MongoCounterRepository(mongoComponent)
+  protected val repository = new MongoCounterRepository(mongoComponent)
 
   override def beforeEach(): Unit =
     await(repository.collection.deleteMany(Filters.empty()).toFuture().map(_ => ()))

@@ -17,10 +17,12 @@
 package uk.gov.hmrc.ups.repository
 
 import org.mongodb.scala.model.Filters
+import org.mongodb.scala.{ ObservableFuture, SingleObservableFuture }
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec
-import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.test.{ DefaultPlayMongoRepositorySupport, MongoSupport }
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.utils.DateTimeUtils
 
@@ -30,25 +32,16 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.language.reflectiveCalls
 
 class UpdatedPrintSuppressionsRepositorySpec
-    extends PlaySpec with DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions] with BeforeAndAfterEach
-    with ScalaFutures with IntegrationPatience {
+    extends PlaySpec with /*DefaultPlayMongoRepositorySupport[UpdatedPrintSuppressions]*/ MongoSupport
+    with BeforeAndAfterEach with ScalaFutures with IntegrationPatience {
 
   implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
 
   private val TODAY: LocalDate = LocalDate.now()
-  private val counterRepoStub = new MongoCounterRepository(mongoComponent) {
-    var counter: AtomicInteger = new AtomicInteger(-1)
 
-    override def next(counterName: String)(implicit ec: ExecutionContext): Future[Int] =
-      Future(counter.incrementAndGet())
+  val counterRepoStub = new CounterRepoStub(mongoComponent)
 
-    def reset(): Unit =
-      counter = new AtomicInteger(-1)
-  }
-
-  override def checkTtlIndex: Boolean = false
-
-  override protected val repository = new UpdatedPrintSuppressionsRepository(mongoComponent, TODAY, counterRepoStub)
+  protected val repository = new UpdatedPrintSuppressionsRepository(mongoComponent, TODAY, counterRepoStub)
 
   override def beforeEach(): Unit = {
     counterRepoStub.reset()
@@ -128,4 +121,15 @@ class UpdatedPrintSuppressionsRepositorySpec
         .futureValue mustBe Some(List("1"))
     }
   }
+
+  class CounterRepoStub(mongoComponent: MongoComponent) extends MongoCounterRepository(mongoComponent) {
+    var counter: AtomicInteger = new AtomicInteger(-1)
+
+    override def next(counterName: String)(implicit ec: ExecutionContext): Future[Int] =
+      Future(counter.incrementAndGet())
+
+    def reset(): Unit =
+      counter = new AtomicInteger(-1)
+  }
+
 }
