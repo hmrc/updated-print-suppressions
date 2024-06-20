@@ -18,7 +18,7 @@ package uk.gov.hmrc.ups.scheduled
 
 import uk.gov.hmrc.ups.repository.{ UpdatedPrintSuppressions, UpdatedPrintSuppressionsDatabase }
 
-import java.time.{ LocalDate, Period }
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import scala.concurrent.duration._
 import scala.concurrent.{ ExecutionContext, Future }
@@ -62,7 +62,8 @@ trait DeleteCollectionFilter {
     val formatter = DateTimeFormatter.ofPattern(UpdatedPrintSuppressions.datePattern)
     def extractDateFromCollection(value: String) = LocalDate.parse(value.dropWhile(!_.isDigit), formatter)
 
-    Period.between(extractDateFromCollection(collectionName), today).getDays >= days.toDays
+    val collectionDaysOld = today.toEpochDay - extractDateFromCollection(collectionName).toEpochDay
+    collectionDaysOld >= days.toDays
   }
 }
 final case class Totals(failures: List[Failed], successes: List[Succeeded])
