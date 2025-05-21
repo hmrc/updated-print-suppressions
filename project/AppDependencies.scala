@@ -21,14 +21,14 @@ import sbt._
 object AppDependencies {
 
   val PekkoVersion = "1.0"
-  val hmrcMongo = "2.0.0"
-  val bootstrapBackend = "9.0.0"
+  val hmrcMongo = "2.6.0"
+  val bootstrapBackend = "9.12.0"
 
   val compile = Seq(
     ws,
     "uk.gov.hmrc"       %% "bootstrap-backend-play-30"         % bootstrapBackend,
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-work-item-repo-play-30" % hmrcMongo,
-    "uk.gov.hmrc"       %% "domain-play-30"                    % "10.0.0",
+    "uk.gov.hmrc"       %% "domain-play-30"                    % "12.1.0",
     "net.codingwell"    %% "scala-guice"                       % "6.0.0",
     "org.typelevel"     %% "cats-core"                         % "2.12.0"
   )
