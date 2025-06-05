@@ -22,7 +22,7 @@ object AppDependencies {
 
   val PekkoVersion = "1.0"
   val hmrcMongo = "2.6.0"
-  val bootstrapBackend = "9.12.0"
+  val bootstrapBackend = "9.13.0"
 
   val compile = Seq(
     ws,
