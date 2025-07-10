@@ -21,8 +21,8 @@ import sbt._
 object ScoverageSettings {
   def apply(): Seq[Def.Setting[? >: String & Double & Boolean]] =
     Seq( // Semicolon-separated list of regexes matching classes to exclude
-      ScoverageKeys.coverageExcludedPackages := "<empty>;.*Reverse.*;.*testonly.*;.*(BuildInfo|Routes).*",
-      ScoverageKeys.coverageMinimumStmtTotal := 30.00,
+      ScoverageKeys.coverageExcludedPackages := "<empty>;.*Reverse.*;.*testonly.*;.*(BuildInfo|Routes).*;.*\\$anon.*",
+      ScoverageKeys.coverageMinimumStmtTotal := 39.70,
       ScoverageKeys.coverageFailOnMinimum := true,
       ScoverageKeys.coverageHighlighting := true,
       ConfigKey.configurationToKey(Test) / parallelExecution := false
