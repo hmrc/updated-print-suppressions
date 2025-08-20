@@ -22,6 +22,7 @@ object AppDependencies {
 
   val hmrcMongo = "2.6.0"
   val bootstrapBackend = "9.14.0"
+  val pekkoVersion: String = "1.0.3"
 
   val compile = Seq(
     ws,
@@ -33,10 +34,15 @@ object AppDependencies {
   )
 
   val test = Seq(
-    "uk.gov.hmrc"            %% "bootstrap-test-play-30"  % bootstrapBackend % "test",
-    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30" % hmrcMongo        % "test",
-    "org.scalatestplus"      %% "mockito-3-4"             % "3.2.10.0"       % "test",
-    "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.2"          % "test"
+    "uk.gov.hmrc"            %% "bootstrap-test-play-30"    % bootstrapBackend % "test",
+    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30"   % hmrcMongo        % "test",
+    "org.scalatestplus"      %% "mockito-3-4"               % "3.2.10.0"       % "test",
+    "org.scalatestplus.play" %% "scalatestplus-play"        % "7.0.2"          % "test",
+    // Core Pekko Stream testkit
+    "org.apache.pekko"       %% "pekko-stream-testkit"      % pekkoVersion     % Test,
+    // Classic actor testkit (for TestKit base class)
+    "org.apache.pekko"       %% "pekko-testkit"             % pekkoVersion     % Test,
+    "org.apache.pekko"       %% "pekko-actor-testkit-typed" % pekkoVersion     % Test
   )
 
   val it = Seq(

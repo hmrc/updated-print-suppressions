@@ -16,38 +16,28 @@
 
 package uk.gov.hmrc.ups
 
-import com.google.inject.{ AbstractModule, Provides, Singleton }
+import com.google.inject.{ AbstractModule, Provides }
 import net.codingwell.scalaguice.ScalaModule
-import play.api.{ Configuration, Logger }
+import org.apache.pekko.Done
+import org.apache.pekko.stream.scaladsl.Sink
 import play.api.libs.concurrent.PekkoGuiceSupport
-import uk.gov.hmrc.ups.scheduled.jobs.RemoveOlderCollectionsJob
-import uk.gov.hmrc.ups.scheduling.ScheduledJob
+import uk.gov.hmrc.ups.service.RemoveOlderCollectionsService
 
 import java.time.LocalDate
+import scala.concurrent.Future
 
 // $COVERAGE-OFF$Disabling
 class UpsModule extends AbstractModule with ScalaModule with PekkoGuiceSupport {
 
-  private val logger: Logger = Logger(getClass)
+  override def configure(): Unit =
+    bind[UpsMain].asEagerSingleton()
+  bind[RemoveOlderCollectionsService].asEagerSingleton()
 
-  override def configure(): Unit = bind[UpsMain].asEagerSingleton()
-
-  val taskEnabled: (Configuration, String) => Boolean = (config: Configuration, name: String) => {
-    val enabled = config.getOptional[Boolean](s"scheduling.$name.taskEnabled").getOrElse(false)
-    if (!enabled) logger.warn(s"'scheduling.$name.taskEnabled' is not true and the scheduled job will not be started")
-    enabled
-  }
+  @Provides
+  def sink(): Sink[Unit, _] = Sink.ignore
 
   @Provides
   def localDate(): LocalDate = LocalDate.now()
 
-  @Provides
-  @Singleton
-  def scheduledJobsProvider(
-    removeOlderCollectionsJob: RemoveOlderCollectionsJob
-  ): Seq[ScheduledJob] =
-    Seq(
-      removeOlderCollectionsJob
-    )
 }
 // $COVERAGE-ON$
