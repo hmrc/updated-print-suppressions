@@ -17,7 +17,16 @@ lazy val microservice = Project(appName, file("."))
     routesGenerator := InjectedRoutesGenerator,
     Test / fork := false,
     retrieveManaged := true,
-    scalacOptions ++= List("-feature")
+    scalacOptions ++= List(
+      "-feature",
+      // Silence unused imports in template files
+      "-Wconf:msg=unused import&src=.*:s",
+      // Silence "Flag -XXX set repeatedly"
+      "-Wconf:msg=Flag.*repeatedly:s",
+      "-Wconf:msg=Setting -Wunused set to all redundantly:s",
+      // Silence unused warnings on Play `routes` files
+      "-Wconf:src=routes/.*:s"
+    )
   )
   .settings(RoutesKeys.routesImport ++= Seq("uk.gov.hmrc.ups.model._"))
   .settings(ScoverageSettings())

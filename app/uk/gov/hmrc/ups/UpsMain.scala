@@ -31,8 +31,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 class UpsMain @Inject() (
   actorSystem: ActorSystem,
   configuration: Configuration,
-  lifecycle: ApplicationLifecycle,
-  scheduledJobs: Seq[ScheduledJob]
+  lifecycle: ApplicationLifecycle
 )(implicit val ec: ExecutionContext) {
 
   val logger: Logger = Logger(this.getClass)
@@ -42,21 +41,8 @@ class UpsMain @Inject() (
     }
   )
 
-  scheduledJobs.foreach(startScheduleJob)
-
-  private def startScheduleJob(job: ScheduledJob)(implicit ec: ExecutionContext): Unit =
-    if (job.taskEnabled) {
-      logger.warn(s"Starting scheduled job $job")
-      actorSystem.scheduler.scheduleWithFixedDelay(job.initialDelay, job.interval) { () =>
-        job.execute
-      }
-    } else {
-      logger.warn(s"${job.name} will not run, taskEnabled is false")
-    }
-
   val refreshInterval: Int = configuration
     .getMillis(s"microservice.metrics.gauges.interval")
     .toInt
-
 }
 // $COVERAGE-ON$
