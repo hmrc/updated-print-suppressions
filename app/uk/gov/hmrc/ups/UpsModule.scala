@@ -29,9 +29,10 @@ import scala.concurrent.Future
 // $COVERAGE-OFF$Disabling
 class UpsModule extends AbstractModule with ScalaModule with PekkoGuiceSupport {
 
-  override def configure(): Unit =
+  override def configure(): Unit = {
     bind[UpsMain].asEagerSingleton()
-  bind[RemoveOlderCollectionsService].asEagerSingleton()
+    bind[RemoveOlderCollectionsService].asEagerSingleton()
+  }
 
   @Provides
   def sink(): Sink[Unit, _] = Sink.ignore
