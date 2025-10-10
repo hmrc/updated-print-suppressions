@@ -35,6 +35,12 @@ lazy val it = project
   .enablePlugins(PlayScala, ScalafmtPlugin)
   .dependsOn(microservice % "test->test") // the "test->test" allows reusing test code and test dependencies
   .settings(libraryDependencies ++= AppDependencies.it)
+  .settings(
+    scalacOptions ++= List(
+      // Silence "Flag -XXX set repeatedly"
+      "-Wconf:msg=Flag.*repeatedly:s"
+    )
+  )
 
 Test / test := (Test / test)
   .dependsOn(scalafmtCheckAll)
