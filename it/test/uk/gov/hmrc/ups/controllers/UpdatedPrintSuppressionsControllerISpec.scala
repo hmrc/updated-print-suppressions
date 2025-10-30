@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.ups.controllers
 
-import org.scalatest.Ignore
 import org.scalatest.concurrent.IntegrationPatience
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsArray, JsValue, Json }
