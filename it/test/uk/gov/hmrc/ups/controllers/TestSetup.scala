@@ -23,15 +23,18 @@ import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.OFormat
 import play.api.test.Helpers._
+import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions, UpdatedPrintSuppressionsRepository }
 
 import java.time.{ LocalDate, ZoneOffset }
 import java.time.format.DateTimeFormatter
 import scala.concurrent.ExecutionContext
 
-trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with MongoSupport {
+trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with MongoSupport with TestServer {
+
+  override lazy val mongoComponent = app.injector.instanceOf[MongoComponent]
 
   val mongoCounterRepository: MongoCounterRepository
   val today: LocalDate = LocalDate.now
@@ -43,27 +46,31 @@ trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with 
   val yesterdayAsString: String = dateFormatter.format(yesterday)
 
   implicit val ppFormats: OFormat[PrintPreference] = PrintPreference.formats
+  implicit val upsFormats: OFormat[UpdatedPrintSuppressions] = UpdatedPrintSuppressions.formats
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  // Reset the counters
-  await(mongoCounterRepository.collection.deleteMany(Filters.empty()).toFuture())
+  lazy val repoToday: UpdatedPrintSuppressionsRepository =
+    new UpdatedPrintSuppressionsRepository(mongoComponent, today, mongoCounterRepository)
 
-  val repoToday = new UpdatedPrintSuppressionsRepository(mongoComponent, today, mongoCounterRepository)
-  await(repoToday.collection.deleteMany(Filters.empty()).toFuture())
-
-  val repoYesterday = new UpdatedPrintSuppressionsRepository(mongoComponent, yesterday, mongoCounterRepository)
-  await(repoYesterday.collection.deleteMany(Filters.empty()).toFuture())
+  lazy val repoYesterday: UpdatedPrintSuppressionsRepository =
+    new UpdatedPrintSuppressionsRepository(mongoComponent, yesterday, mongoCounterRepository)
 
   def todayAtStartOfDay = today.atStartOfDay().toInstant(ZoneOffset.UTC)
   def yesterdayAtStartOfDay = yesterday.atStartOfDay().toInstant(ZoneOffset.UTC)
 
+  protected def initializeRepos(): Unit = {
+    val _ = repoToday
+    val _ = repoYesterday
+  }
+
   override def beforeEach(): Unit = {
     super.beforeEach()
-    await(repoYesterday.collection.drop().toFuture())
+    initializeRepos()
+    await(repoYesterday.collection.deleteMany(Filters.empty()).toFuture())
   }
 
   override def afterEach(): Unit = {
     super.afterEach()
-    await(repoYesterday.collection.drop().toFuture())
+    await(repoYesterday.collection.deleteMany(Filters.empty()).toFuture())
   }
 }

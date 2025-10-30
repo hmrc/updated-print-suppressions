@@ -17,7 +17,6 @@
 package uk.gov.hmrc.ups.controllers.admin
 
 import org.mongodb.scala.ObservableFuture
-import org.junit.Ignore
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.PlaySpec
 import play.api.libs.json.{ JsArray, JsValue, Json }
@@ -30,15 +29,14 @@ import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppress
 
 import scala.concurrent.Future
 
-@Ignore // NOTE INTEGRATION TESTS ARE NOT RUNNING IN THE BUILD PIPELINE
 class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterEach {
 
   "AdminController" should {
-    "insert a new PrintPreference" ignore new TestSetup {
+    "insert a new PrintPreference" in new TestSetup {
       override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
       private val preference = PrintPreference("someId", "someType", List("f1"))
       await(
-        wsUrl("/preferences/sa/individual/print-suppression")
+        wsUrl("/test-only/preferences/sa/individual/print-suppression")
           .withQueryStringParameters("date" -> yesterdayAsString)
           .post(Json.toJson(preference))
       )
@@ -50,7 +48,7 @@ class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterE
       } mustBe List((1, preference))
     }
 
-    "fetch a new PrintPreference created today using admin end-point" ignore new TestSetup {
+    "fetch a new PrintPreference created today using admin end-point" in new TestSetup {
       override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       private val ppOne = PrintPreference("11111111", "someType", List("f1", "f2"))

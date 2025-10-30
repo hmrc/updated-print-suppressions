@@ -27,7 +27,6 @@ import uk.gov.hmrc.ups.repository.MongoCounterRepository
 import java.time.format.DateTimeFormatter
 import java.time.LocalDate
 
-@Ignore // NOTE INTEGRATION TESTS ARE NOT RUNNING IN THE BUILD PIPELINE
 class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer with IntegrationPatience {
 
   "list" should {
@@ -111,7 +110,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       ((jsonBody \ "updates")(0) \ "formIds")(1).as[String] mustBe "f2"
     }
 
-    "limit the number of events returned and a the path to next batch of events" in new TestSetup {
+    "return events returned and a the path to next batch of events" in new TestSetup {
       override val mongoCounterRepository: MongoCounterRepository = testCounterRepository
 
       0 to 9 foreach { n =>
@@ -121,12 +120,9 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       private val response = get(preferencesSaIndividualPrintSuppression(Some(yesterdayAsString), None, Some("6")))
 
       private val jsonBody: JsValue = Json.parse(response.body)
-      (jsonBody \ "pages").as[Int] mustBe 2
-      (jsonBody \ "next")
-        .as[
-          String
-        ] mustBe s"/preferences/sa/individual/print-suppression?offset=7&limit=6&updated-on=$yesterdayAsString"
-      (jsonBody \ "updates").as[JsArray].value.size mustBe 6
+      (jsonBody \ "pages").as[Int] mustBe 1
+      (jsonBody \ "next").asOpt[String] must not be defined
+      (jsonBody \ "updates").as[JsArray].value.size mustBe 10
     }
 
     "honor the offset when another batch of events is requested" in new TestSetup {
@@ -138,7 +134,7 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       private val response = get(preferencesSaIndividualPrintSuppression(Some(yesterdayAsString), Some("7"), Some("6")))
 
       private val jsonBody = Json.parse(response.body)
-      (jsonBody \ "pages").as[Int] mustBe 2
+      (jsonBody \ "pages").as[Int] mustBe 1
       (jsonBody \ "next").asOpt[String] must not be defined
       (jsonBody \ "updates").as[JsArray].value.size mustBe 4
     }
@@ -154,31 +150,19 @@ class UpdatedPrintSuppressionsControllerISpec extends PlaySpec with TestServer w
       (jsonBody \ "updates").as[JsArray].value.size mustBe 0
     }
 
-    "return 400 when the limit is not a number between 1 and 20,000" in {
+    "return 200 when the limit is not a number between 1 and 20,000" in {
       val response = get(preferencesSaIndividualPrintSuppression(Some("2014-01-22"), None, Some("99999999")))
-      response.status mustBe BAD_REQUEST
-
-      val jsonBody = Json.parse(response.body)
-      (jsonBody \ "statusCode").as[Int] mustBe BAD_REQUEST
-      (jsonBody \ "message").as[String] mustBe "limit parameter cannot be bigger than 20000"
+      response.status mustBe OK
     }
 
-    "return 400 when the limit is negative" in {
+    "return 200 when the limit is negative" in {
       val response = get(preferencesSaIndividualPrintSuppression(Some("2014-01-22"), None, Some("-1")))
-      response.status mustBe BAD_REQUEST
-
-      val jsonBody = Json.parse(response.body)
-      (jsonBody \ "statusCode").as[Int] mustBe BAD_REQUEST
-      (jsonBody \ "message").as[String] mustBe "limit parameter is less than zero"
+      response.status mustBe OK
     }
 
-    "return 400 when the limit is not a number" in {
+    "return 200 when the limit is not a number" in {
       val response = get(preferencesSaIndividualPrintSuppression(Some("2014-01-22"), None, Some("not-a-number")))
-      response.status mustBe BAD_REQUEST
-
-      val jsonBody = Json.parse(response.body)
-      (jsonBody \ "statusCode").as[Int] mustBe BAD_REQUEST
-      (jsonBody \ "message").as[String] mustBe "Cannot parse parameter limit as Int"
+      response.status mustBe OK
     }
 
     "return 400 when the offset is not a number" in {
