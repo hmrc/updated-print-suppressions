@@ -22,7 +22,6 @@ import uk.gov.hmrc.mongo.lock.{ LockRepository, LockService }
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ ExecutionContext, Future, duration }
 
-//$COVERAGE-OFF$
 trait LockedScheduledJob extends ScheduledJob {
   private val logger: Logger = Logger(getClass)
 
@@ -48,4 +47,3 @@ trait LockedScheduledJob extends ScheduledJob {
     }
 
 }
-//$COVERAGE-ON$
