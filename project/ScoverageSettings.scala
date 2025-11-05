@@ -33,7 +33,7 @@ object ScoverageSettings {
   def apply(): Seq[Def.Setting[_ >: String with Double with Boolean]] =
     Seq( // Semicolon-separated list of regexes matching classes to exclude
       ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(","),
-      ScoverageKeys.coverageMinimumStmtTotal := 55.00,
+      ScoverageKeys.coverageMinimumStmtTotal := 70.00,
       ScoverageKeys.coverageFailOnMinimum := true,
       ScoverageKeys.coverageHighlighting := true
     )
