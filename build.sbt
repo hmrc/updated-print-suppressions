@@ -1,5 +1,6 @@
 import play.sbt.routes.RoutesKeys
 import uk.gov.hmrc.DefaultBuildSettings._
+import scoverage.ScoverageKeys
 
 val appName = "updated-print-suppressions"
 
@@ -43,11 +44,5 @@ lazy val it = project
   )
 
 Test / test := (Test / test)
-  .dependsOn(scalafmtCheckAll)
-  .value
-
-// NOTE: the jenkins build does not currently execute the integration tests 
-
-it / test := (it / Test / test)
-  .dependsOn(scalafmtCheckAll, it/scalafmtCheckAll)
+  .dependsOn(scalafmtCheckAll, it / Test / test)
   .value

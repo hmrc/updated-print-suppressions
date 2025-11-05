@@ -20,15 +20,14 @@ import sbt._
 
 object ScoverageSettings {
 
- val  excludedPackages: Seq[String] = Seq(
+  val excludedPackages: Seq[String] = Seq(
     "<empty>",
     ".*Reverse.*",
-   ".*Routes.*",
-   ".*BuildInfo.*",
-   "testOnlyDoNotUseInAppConf.*",
+    ".*Routes.*",
+    ".*BuildInfo.*",
+    "testOnlyDoNotUseInAppConf.*",
     ".*\\$anon.*"
   )
-
 
   def apply(): Seq[Def.Setting[_ >: String with Double with Boolean]] =
     Seq( // Semicolon-separated list of regexes matching classes to exclude
