@@ -19,9 +19,20 @@ import scoverage.ScoverageKeys
 import sbt._
 
 object ScoverageSettings {
+
+ val  excludedPackages: Seq[String] = Seq(
+    "<empty>",
+    ".*Reverse.*",
+   ".*Routes.*",
+   ".*BuildInfo.*",
+   "testOnlyDoNotUseInAppConf.*",
+    ".*\\$anon.*"
+  )
+
+
   def apply(): Seq[Def.Setting[_ >: String with Double with Boolean]] =
     Seq( // Semicolon-separated list of regexes matching classes to exclude
-      ScoverageKeys.coverageExcludedPackages := ",",
+      ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(","),
       ScoverageKeys.coverageMinimumStmtTotal := 55.00,
       ScoverageKeys.coverageFailOnMinimum := true,
       ScoverageKeys.coverageHighlighting := true
