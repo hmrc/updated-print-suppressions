@@ -18,27 +18,23 @@ package uk.gov.hmrc.ups.model
 
 import org.scalatest.funsuite.AnyFunSuiteLike
 import org.scalatestplus.play.PlaySpec
-
+import play.api.libs.json.Json
+import uk.gov.hmrc.ups.utils.DateFormats.instantFormats
 import java.util.UUID
 
 class PulledItemSpec extends PlaySpec {
-
   "PulledItem" should {
-    "format" in {
-      val entityId = EntityId(UUID.randomUUID().toString)
-      val pulledItem = PulledItem(
-        entityId = entityId,
+    "serialize and deserialize" in {
+      implicit val pulledItemFormat = PulledItem.formats
+      val originalPulledItem = PulledItem(
+        entityId = EntityId("some-id"),
         paperless = true,
-        updatedAt = java.time.Instant.parse("2024-01-01T12:00:00Z"),
-        callbackUrl = "https://example.com/callback"
+        updatedAt = instantFormats.reads(Json.parse("\"2024-06-10T12:34:56Z\"")).get,
+        callbackUrl = s"https://callback.url/${UUID.randomUUID()}"
       )
-
-      pulledItem.entityId mustBe entityId
-      pulledItem.paperless mustBe true
-      pulledItem.updatedAt mustBe java.time.Instant.parse("2024-01-01T12:00:00Z")
-      pulledItem.callbackUrl mustBe "https://example.com/callback"
+      val json = Json.toJson(originalPulledItem)
+      val deserializedPulledItem = json.as[PulledItem]
+      deserializedPulledItem mustEqual originalPulledItem
     }
-
   }
-
 }

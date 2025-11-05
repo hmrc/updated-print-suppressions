@@ -21,7 +21,6 @@ import uk.gov.hmrc.ups.utils.DateFormats
 
 import java.time.Instant
 
-// $COVERAGE-OFF$Soon to be deleted
 case class PulledItem(entityId: EntityId, paperless: Boolean, updatedAt: Instant, callbackUrl: String)
 
 object PulledItem {
@@ -33,4 +32,3 @@ object PulledItem {
   }
 
 }
-// $COVERAGE-ON$

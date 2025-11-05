@@ -18,26 +18,24 @@ package uk.gov.hmrc.ups.model
 
 import org.scalatest.funsuite.AnyFunSuiteLike
 import org.scalatestplus.play.PlaySpec
+import play.api.libs.json.{ Json, OFormat }
 
 class UpdatedPrintPreferencesSpec extends PlaySpec {
 
   "UpdatedPrintPreferences" should {
 
-    "format" in {
-      val updatedPrintPreferences = UpdatedPrintPreferences(
-        pages = 5,
-        next = Some("nextPageToken"),
+    "serialize and deserialize correctly" in {
+      implicit val uppFormat: OFormat[UpdatedPrintPreferences] = UpdatedPrintPreferences.formats
+      val originalUpp = UpdatedPrintPreferences(
+        pages = 2,
+        next = Some("next-page-token"),
         updates = List(
-          PrintPreference(id = "1234567890", idType = "sautr", formIds = List("form1", "form2"))
+          PrintPreference("some-id", "sautr", List("some-form"))
         )
       )
-
-      updatedPrintPreferences.pages mustBe 5
-      updatedPrintPreferences.next mustBe Some("nextPageToken")
-      updatedPrintPreferences.updates.length mustBe 1
-      updatedPrintPreferences.updates.head.id mustBe "1234567890"
-      updatedPrintPreferences.updates.head.idType mustBe "sautr"
-      updatedPrintPreferences.updates.head.formIds must contain allOf ("form1", "form2")
+      val json = Json.toJson(originalUpp)
+      val deserializedUpp = json.as[UpdatedPrintPreferences]
+      deserializedUpp mustEqual originalUpp
     }
   }
 
