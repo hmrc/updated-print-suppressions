@@ -29,7 +29,7 @@ lazy val microservice = Project(appName, file("."))
     )
   )
   .settings(RoutesKeys.routesImport ++= Seq("uk.gov.hmrc.ups.model._"))
-  .settings(ScoverageSettings())
+  .settings(ScoverageSettings().settings)
 
 lazy val it = project
   .enablePlugins(PlayScala, ScalafmtPlugin)
