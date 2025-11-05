@@ -21,7 +21,6 @@ import play.api.Configuration
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.duration._
 
-// $COVERAGE-OFF$
 @Singleton
 class RunModeBridge @Inject() (configuration: Configuration) {
 
@@ -49,4 +48,3 @@ class RunModeBridge @Inject() (configuration: Configuration) {
       .toMillis
 
 }
-// $COVERAGE-ON$
