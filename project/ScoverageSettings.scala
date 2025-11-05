@@ -24,7 +24,6 @@ object ScoverageSettings {
       ScoverageKeys.coverageExcludedPackages := ",",
       ScoverageKeys.coverageMinimumStmtTotal := 55.00,
       ScoverageKeys.coverageFailOnMinimum := true,
-      ScoverageKeys.coverageHighlighting := true,
-      ConfigKey.configurationToKey(Test) / parallelExecution := false
+      ScoverageKeys.coverageHighlighting := true
     )
 }
