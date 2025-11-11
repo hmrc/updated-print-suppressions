@@ -16,19 +16,22 @@
 
 package uk.gov.hmrc.ups.scheduled
 
+import play.api.Logger
 import uk.gov.hmrc.ups.repository.{ UpdatedPrintSuppressions, UpdatedPrintSuppressionsDatabase }
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import scala.concurrent.duration._
+import scala.concurrent.duration.*
 import scala.concurrent.{ ExecutionContext, Future }
 
 trait RemoveOlderCollections extends DeleteCollectionFilter with SelectAndRemove {
-
+  val logger: Logger = Logger(this.getClass)
   def repository: UpdatedPrintSuppressionsDatabase
 
-  def removeOlderThan(days: Duration)(implicit ec: ExecutionContext): Future[Totals] =
+  def removeOlderThan(days: Duration)(implicit ec: ExecutionContext): Future[Totals] = {
+    logger.warn("removeOlderThan invoked - this will remove old ups collections")
     compose(() => repository.upsCollectionNames, repository.dropCollection, filterUpsCollectionsOnly(_, days))
+  }
 
 }
 

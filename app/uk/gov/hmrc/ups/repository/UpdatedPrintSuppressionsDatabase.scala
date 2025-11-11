@@ -18,18 +18,25 @@ package uk.gov.hmrc.ups.repository
 
 import uk.gov.hmrc.mongo.MongoComponent
 import org.mongodb.scala.ObservableFuture
+import play.api.Logger
+
 import javax.inject.{ Inject, Singleton }
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
 class UpdatedPrintSuppressionsDatabase @Inject() (mongoComponent: MongoComponent) {
-
-  def dropCollection(collectionName: String)(implicit ec: ExecutionContext): Future[Unit] =
+  val logger: Logger = Logger(this.getClass)
+  def dropCollection(collectionName: String)(implicit ec: ExecutionContext): Future[Unit] = {
+    logger.warn("dropCollection invoked - this will drop a ups collection")
     mongoComponent.database.getCollection(collectionName).drop().toFuture().map(_ => ())
+  }
 
   private def listCollectionNames(predicate: String => Boolean)(implicit ec: ExecutionContext): Future[List[String]] =
     mongoComponent.database.listCollectionNames().toFuture().map(_.filter(predicate).toList)
 
-  def upsCollectionNames(implicit ec: ExecutionContext): Future[List[String]] =
+  def upsCollectionNames(implicit ec: ExecutionContext): Future[List[String]] = {
+    val count = mongoComponent.database.listCollectionNames().toFuture().map(_.size)
+    logger.warn(s"upsCollectionNames invoked - count is $count")
     listCollectionNames(_.startsWith("updated"))
+  }
 }
