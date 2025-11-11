@@ -43,7 +43,6 @@ class RemoveOlderCollectionsService @Inject() (
   sink: Sink[Unit, _] = Sink.ignore
 )(implicit ec: ExecutionContext, mat: Materializer)
     extends LockService with RemoveOlderCollections {
-  val logger: Logger = Logger(this.getClass)
 
   override def repository: UpdatedPrintSuppressionsDatabase = updatedPrintSuppressionsDatabase
 
