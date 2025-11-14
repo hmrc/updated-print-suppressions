@@ -20,8 +20,9 @@ import uk.gov.hmrc.mongo.MongoComponent
 import org.mongodb.scala.ObservableFuture
 import play.api.Logger
 
+import scala.concurrent.duration._
 import javax.inject.{ Inject, Singleton }
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 @Singleton
 class UpdatedPrintSuppressionsDatabase @Inject() (mongoComponent: MongoComponent) {
@@ -36,7 +37,7 @@ class UpdatedPrintSuppressionsDatabase @Inject() (mongoComponent: MongoComponent
 
   def upsCollectionNames(implicit ec: ExecutionContext): Future[List[String]] = {
     val count = mongoComponent.database.listCollectionNames().toFuture().map(_.size)
-    logger.warn(s"upsCollectionNames invoked - count is $count")
+    logger.warn(s"upsCollectionNames invoked - count is ${Await.result(count, 10.seconds)}")
     listCollectionNames(_.startsWith("updated"))
   }
 }
