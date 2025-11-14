@@ -43,7 +43,6 @@ class RemoveOlderCollectionsService @Inject() (
   sink: Sink[Unit, _] = Sink.ignore
 )(implicit ec: ExecutionContext, mat: Materializer)
     extends LockService with RemoveOlderCollections {
-  val logger: Logger = Logger(this.getClass)
 
   override def repository: UpdatedPrintSuppressionsDatabase = updatedPrintSuppressionsDatabase
 
@@ -87,10 +86,13 @@ class RemoveOlderCollectionsService @Inject() (
   }
 
   // Attempt to acquire lock and run the body
-  private def startWorkloadStream(): Future[Unit] =
+  private def startWorkloadStream(): Future[Unit] = {
+
+    logger.warn("startWorkloadStream: before acquiring lock")
     // Acquire a lock
     withLock {
-      logger.debug(s"Workload stream starting")
+      logger.warn("startWorkloadStream: after acquiring lock")
+
       // Execute this body when lock successfully acquired
       execute
     }
@@ -103,8 +105,10 @@ class RemoveOlderCollectionsService @Inject() (
       .recover { case ex =>
         logger.error(s"Lock acquisition failed: $ex")
       }
+  }
 
-  def execute: Future[Result] =
+  def execute: Future[Result] = {
+    logger.warn("ExecuteRemoveOlderCollectionsService job...")
     removeOlderThan(durationInDays).map { totals =>
       (totals.failures ++ totals.successes).foreach {
         case Succeeded(collectionName) =>
@@ -123,6 +127,7 @@ class RemoveOlderCollectionsService @Inject() (
            |""".stripMargin
       Result(text)
     }
+  }
 
   private lazy val durationInDays = {
     val days = configuration
