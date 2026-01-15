@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-import sbt.Keys.parallelExecution
+import sbt.*
 import scoverage.ScoverageKeys
-import sbt._
 
 object ScoverageSettings {
 
@@ -29,10 +28,10 @@ object ScoverageSettings {
     ".*\\$anon.*"
   )
 
-  def apply(): Seq[Def.Setting[_ >: String with Double with Boolean]] =
+  def apply(): Seq[Def.Setting[? >: String & Double & Boolean]] =
     Seq(
       ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(","),
-      ScoverageKeys.coverageMinimumStmtTotal := 70.00,
+      ScoverageKeys.coverageMinimumStmtTotal := 90.00,
       ScoverageKeys.coverageFailOnMinimum := true,
       ScoverageKeys.coverageHighlighting := true
     )

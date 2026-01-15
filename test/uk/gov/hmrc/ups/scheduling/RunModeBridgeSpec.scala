@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,6 +67,25 @@ class RunModeBridgeSpec extends SpecBase {
 
     "return batch size as 0 when the property is not present" in new Setup {
       runModeBridge.getBatchSize("updatedPrintSuppressions", "unknown") must be(0)
+    }
+  }
+
+  "getOptionalMillisForScheduling" should {
+    "return the correct value when property is present" in new Setup {
+      runModeBridge.getOptionalMillisForScheduling("updatedPrintSuppressions", "initialDelay") must be(
+        Option(60000.milliseconds)
+      )
+    }
+
+    "return the None when property is not present" in new Setup {
+      runModeBridge.getOptionalMillisForScheduling("updatedPrintSuppressions", "unknown") mustBe empty
+    }
+  }
+
+  "getLongMillis" should {
+    "return the correct value" in new Setup {
+      val expectedValue = 60000L
+      runModeBridge.getLongMillis("scheduling.removeOlderCollections.initialDelay") must be(expectedValue)
     }
   }
 
