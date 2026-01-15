@@ -19,5 +19,13 @@ package uk.gov.hmrc.ups
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.play.PlaySpec
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 
-class SpecBase extends AnyWordSpec with Matchers {}
+class SpecBase extends AnyWordSpec with Matchers {
+  lazy val app: Application = new GuiceApplicationBuilder()
+    .configure(
+      "metrics.enabled" -> "false"
+    )
+    .build()
+}
