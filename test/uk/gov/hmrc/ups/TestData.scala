@@ -37,4 +37,8 @@ import java.time.Instant
 object TestData {
   val EPOCH_MILI_SECONDS: Long = 567245389L
   val TEST_TIME_INSTANT: Instant = Instant.ofEpochMilli(EPOCH_MILI_SECONDS)
+
+  val TEST_ID = "test_id"
+  val TEST_ID_TYPE_SAUTR = "sautr"
+  val TEST_FORM_ID = "form_id"
 }
