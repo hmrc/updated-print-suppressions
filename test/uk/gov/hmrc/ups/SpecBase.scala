@@ -18,12 +18,15 @@ package uk.gov.hmrc.ups
 
 import org.scalatest.matchers.must.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.play.PlaySpec
 import play.api.Application
 import play.api.inject.guice.GuiceApplicationBuilder
 
-class SpecBase extends AnyWordSpec with Matchers {
-  lazy val app: Application = new GuiceApplicationBuilder()
+class SpecBase extends AnyWordSpec with Matchers with MockitoSugar {
+  lazy val applicationBuilder: GuiceApplicationBuilder = new GuiceApplicationBuilder()
+
+  lazy val app: Application = applicationBuilder
     .configure(
       "metrics.enabled" -> "false"
     )
