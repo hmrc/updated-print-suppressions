@@ -39,7 +39,7 @@ trait SchedulingConfig {
 
       def print(value: Long, unit: TimeUnit): Option[String] = (value, unit) match {
         case (0, _) => None
-        case (v, u) => Some(s"$v ${u.toString().toLowerCase()}")
+        case (v, u) => Some(s"$v ${u.toString.toLowerCase()}")
       }
 
       val time = List[Option[String]](
@@ -47,6 +47,7 @@ trait SchedulingConfig {
         print(d.toMinutes % 60, TimeUnit.MINUTES),
         print(d.toSeconds % 60, TimeUnit.SECONDS)
       )
+
       val m = time.filter(_.isDefined).collect[String](a => a.get)
       s"${m.mkString(" ")}"
     }
@@ -54,5 +55,5 @@ trait SchedulingConfig {
 
   implicit def durationToString(d: Duration): WriteDuration = new WriteDuration(d)
 
-  override def toString = s"'$name' initialDelay: ${initialDelay.toHM} interval: ${interval.toHM}"
+  override def toString: String = s"'$name' initialDelay: ${initialDelay.toHM} interval: ${interval.toHM}"
 }

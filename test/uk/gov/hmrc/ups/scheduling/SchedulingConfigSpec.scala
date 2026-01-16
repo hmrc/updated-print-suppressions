@@ -69,13 +69,28 @@ class SchedulingConfigSpec extends PlaySpec with MockitoSugar {
     }
 
     "load batchSize from configuration" in {
+      val batchSize: Int = 100
       val mockRunModeBridge = mock[RunModeBridge]
-      when(mockRunModeBridge.getBatchSize("some-job", "batchSize")).thenReturn(100)
+      when(mockRunModeBridge.getBatchSize("some-job", "batchSize")).thenReturn(batchSize)
 
       val config = new TestSchedulingConfig(mockRunModeBridge)
-      config.batchSize mustBe 100
+      config.batchSize mustBe batchSize
     }
+  }
 
+  "toString" should {
+    "return the correct string representation" in {
+      val mockRunModeBridge = mock[RunModeBridge]
+
+      when(mockRunModeBridge.getMillisForScheduling("some-job", "initialDelay"))
+        .thenReturn(500.milliseconds)
+
+      when(mockRunModeBridge.getMillisForScheduling("some-job", "interval"))
+        .thenReturn(1000.milliseconds)
+
+      val schedulingConfig: TestSchedulingConfig = new TestSchedulingConfig(mockRunModeBridge)
+      schedulingConfig.toString mustBe "'some-job' initialDelay:  interval: 1 seconds"
+    }
   }
 
   private class TestSchedulingConfig(val runModeBridge: RunModeBridge) extends SchedulingConfig {

@@ -14,25 +14,21 @@
  * limitations under the License.
  */
 
-import sbt.*
-import scoverage.ScoverageKeys
+package uk.gov.hmrc.ups
 
-object ScoverageSettings {
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatestplus.play.PlaySpec
+import play.api.Application
+import play.api.inject.guice.GuiceApplicationBuilder
 
-  val excludedPackages: Seq[String] = Seq(
-    "<empty>",
-    ".*Reverse.*",
-    ".*Routes.*",
-    ".*BuildInfo.*",
-    "testOnlyDoNotUseInAppConf.*",
-    ".*\\$anon.*"
-  )
+class SpecBase extends AnyWordSpec with Matchers with MockitoSugar {
+  lazy val applicationBuilder: GuiceApplicationBuilder = new GuiceApplicationBuilder()
 
-  def apply(): Seq[Def.Setting[? >: String & Double & Boolean]] =
-    Seq(
-      ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(","),
-      ScoverageKeys.coverageMinimumStmtTotal := 90.00,
-      ScoverageKeys.coverageFailOnMinimum := true,
-      ScoverageKeys.coverageHighlighting := true
+  lazy val app: Application = applicationBuilder
+    .configure(
+      "metrics.enabled" -> "false"
     )
+    .build()
 }
