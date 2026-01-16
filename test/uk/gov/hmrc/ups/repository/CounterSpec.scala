@@ -19,20 +19,27 @@ package uk.gov.hmrc.ups.repository
 import org.scalatest.funsuite.AnyFunSuiteLike
 import org.scalatestplus.play.PlaySpec
 import org.mongodb.scala.bson.ObjectId
-import play.api.libs.json.{ Format, Json, OFormat }
+import play.api.libs.json.{ Format, JsResultException, Json, OFormat }
 
 class CounterSpec extends PlaySpec {
 
   "Counter" should {
-    "serialize and deserialize correctly" in {
-      implicit val counterFormat: OFormat[Counter] = Counter.formats
+    implicit val counterFormat: OFormat[Counter] = Counter.formats
 
+    "serialize and deserialize correctly" in {
       val originalCounter = Counter(new ObjectId(), "test-counter", 42)
       val json = Json.toJson(originalCounter)
       val deserializedCounter = json.as[Counter]
 
       deserializedCounter mustEqual originalCounter
     }
-  }
 
+    "throw exception for invalid json" in {
+      val invalidJson = """{"name":"test","value":"test"}"""
+
+      intercept[JsResultException] {
+        Json.parse(invalidJson).as[Counter]
+      }
+    }
+  }
 }
