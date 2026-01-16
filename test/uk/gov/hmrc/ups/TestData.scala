@@ -35,6 +35,11 @@ package uk.gov.hmrc.ups
 import java.time.Instant
 
 object TestData {
+  val TEST_DAY_1 = 1
+  val TEST_MONTH_11 = 11
+  val TEST_YEAR_2025 = 2025
+  val TEST_YEAR_2026 = 2026
+
   val EPOCH_MILI_SECONDS: Long = 567245389L
   val TEST_TIME_INSTANT: Instant = Instant.ofEpochMilli(EPOCH_MILI_SECONDS)
 
