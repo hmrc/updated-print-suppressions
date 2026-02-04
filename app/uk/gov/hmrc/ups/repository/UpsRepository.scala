@@ -28,15 +28,10 @@ import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
 import uk.gov.hmrc.ups.model.PrintPreference
 import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.updatedAtAsJson
-
 import java.time.{ Instant, LocalDate }
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
 
-/** Single-collection repository implementation using a global counter. This is suitable for low-volume use cases (12k
-  * requests/day). Unlike UpdatedPrintSuppressionsRepository which creates daily collections, this repository uses a
-  * single "updated_print_suppressions" collection.
-  */
 class UpsRepository @Inject() (
   mongoComponent: MongoComponent,
   date: LocalDate,
