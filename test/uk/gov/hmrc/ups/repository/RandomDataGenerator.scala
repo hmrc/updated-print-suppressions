@@ -36,8 +36,8 @@ class RandomDataGenerator
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
-  val repository: UpdatedPrintSuppressionsRepository =
-    new UpdatedPrintSuppressionsRepository(mongoComponent, LocalDate.now().minusDays(1), mongoCounterRepository)
+  val repository: UpsRepository =
+    new UpsRepository(mongoComponent, LocalDate.now().minusDays(1), mongoCounterRepository)
 
   val BATCH_SIZE: Int = 100000
 
