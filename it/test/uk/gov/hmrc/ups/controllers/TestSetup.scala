@@ -21,6 +21,7 @@ import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import play.api.libs.json.OFormat
 import play.api.test.Helpers.*
 import uk.gov.hmrc.mongo.MongoComponent
@@ -35,6 +36,7 @@ import scala.concurrent.ExecutionContext
 trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with MongoSupport with TestServer {
 
   override lazy val mongoComponent = app.injector.instanceOf[MongoComponent]
+  lazy val configuration: Configuration = app.injector.instanceOf[Configuration]
 
   val mongoCounterRepository: MongoCounterRepository
   val today: LocalDate = LocalDate.now
@@ -50,10 +52,10 @@ trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with 
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   lazy val repoToday: UpsRepository =
-    new UpsRepository(mongoComponent, today, mongoCounterRepository)
+    new UpsRepository(mongoComponent, today, mongoCounterRepository, configuration)
 
   lazy val repoYesterday: UpsRepository =
-    new UpsRepository(mongoComponent, yesterday, mongoCounterRepository)
+    new UpsRepository(mongoComponent, yesterday, mongoCounterRepository, configuration)
 
   def todayAtStartOfDay = today.atStartOfDay().toInstant(ZoneOffset.UTC)
   def yesterdayAtStartOfDay = yesterday.atStartOfDay().toInstant(ZoneOffset.UTC)

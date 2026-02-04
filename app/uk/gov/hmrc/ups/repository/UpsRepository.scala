@@ -23,19 +23,22 @@ import org.mongodb.scala.result.UpdateResult
 import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.ObservableFuture
 import org.mongodb.scala.ToSingleObservablePublisher
-import play.api.Logger
+import play.api.{Configuration, Logger}
 import uk.gov.hmrc.mongo.MongoComponent
-import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
+import uk.gov.hmrc.mongo.play.json.{Codecs, PlayMongoRepository}
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.{ localDateFormat, updatedAtAsJson }
-import java.time.{ Instant, LocalDate }
+import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.{localDateFormat, updatedAtAsJson}
+
+import java.time.{Instant, LocalDate}
 import javax.inject.Inject
-import scala.concurrent.{ ExecutionContext, Future }
+import scala.concurrent.duration.DAYS
+import scala.concurrent.{ExecutionContext, Future}
 
 class UpsRepository @Inject() (
   mongoComponent: MongoComponent,
   date: LocalDate,
-  counterRepo: MongoCounterRepository
+  counterRepo: MongoCounterRepository,
+  configuration: Configuration
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[UpdatedPrintSuppressions](
       mongoComponent,
@@ -64,7 +67,10 @@ class UpsRepository @Inject() (
           Indexes.ascending("updatedAt"),
           IndexOptions()
             .name("updatedAtTtlIdx")
-            .expireAfter(30, java.util.concurrent.TimeUnit.DAYS)
+            .expireAfter(
+              configuration.get[Long]("updatedPrintSuppressions.expiryDurationInDays"),
+              DAYS
+            )
         )
       )
     ) {

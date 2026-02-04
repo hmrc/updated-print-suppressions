@@ -22,6 +22,7 @@ import org.mongodb.scala.SingleObservableFuture
 import org.scalatest.DoNotDiscover
 import org.scalatestplus.play.PlaySpec
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import play.api.Configuration
 import play.api.test.Helpers._
 import uk.gov.hmrc.mongo.test.DefaultPlayMongoRepositorySupport
 import uk.gov.hmrc.ups.model.PrintPreference
@@ -36,8 +37,9 @@ class RandomDataGenerator
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
   val mongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
+  val configuration = app.injector.instanceOf[Configuration]
   val repository: UpsRepository =
-    new UpsRepository(mongoComponent, LocalDate.now().minusDays(1), mongoCounterRepository)
+    new UpsRepository(mongoComponent, LocalDate.now().minusDays(1), mongoCounterRepository, configuration)
 
   val BATCH_SIZE: Int = 100000
 

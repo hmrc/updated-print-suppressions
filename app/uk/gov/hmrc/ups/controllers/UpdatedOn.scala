@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ups.controllers
 
+import play.api.{ Configuration, Logger }
 import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc.{ QueryStringBindable, Result }
 import uk.gov.hmrc.http.BadRequestException
@@ -30,9 +31,11 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
-class UpdatedOn @Inject() (mongoComponent: MongoComponent, counterRepository: MongoCounterRepository)(implicit
-  ec: ExecutionContext
-) {
+class UpdatedOn @Inject() (
+  mongoComponent: MongoComponent,
+  counterRepository: MongoCounterRepository,
+  configuration: Configuration
+)(implicit ec: ExecutionContext) {
 
   implicit val uppf: OFormat[UpdatedPrintPreferences] = UpdatedPrintPreferences.formats
 
@@ -45,7 +48,7 @@ class UpdatedOn @Inject() (mongoComponent: MongoComponent, counterRepository: Mo
     maybeUpdatedOn match {
       case Some(Right(updatedOn)) =>
         val upsRepository =
-          new UpsRepository(mongoComponent, updatedOn.value, counterRepository)
+          new UpsRepository(mongoComponent, updatedOn.value, counterRepository, configuration)
         val limit = optLimit.getOrElse(Limit.max)
         val offset = optOffset.getOrElse(1)
         for {
@@ -92,7 +95,8 @@ class UpdatedOn @Inject() (mongoComponent: MongoComponent, counterRepository: Mo
     new UpsRepository(
       mongoComponent,
       LocalDate.parse(date, dtf),
-      counterRepository
+      counterRepository,
+      configuration
     ).insert(printPreference, DateTimeUtils.now)
       .map { _ =>
         Ok("Record inserted")

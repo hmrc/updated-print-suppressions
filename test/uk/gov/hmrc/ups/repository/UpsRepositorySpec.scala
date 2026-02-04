@@ -25,6 +25,7 @@ import org.mongodb.scala.{ ObservableFuture, SingleObservableFuture }
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.{ IntegrationPatience, ScalaFutures }
 import org.scalatestplus.play.PlaySpec
+import play.api.Configuration
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.model.PrintPreference
@@ -42,8 +43,11 @@ class UpsRepositorySpec
 
   val counterRepoStub = new CounterRepoStub(mongoComponent)
   private val TODAY: LocalDate = LocalDate.now()
+  private val testConfiguration: Configuration = Configuration(
+    "updatedPrintSuppressions.expiryDurationInDays" -> 30
+  )
 
-  protected val repository = new UpsRepository(mongoComponent, TODAY, counterRepoStub)
+  protected val repository = new UpsRepository(mongoComponent, TODAY, counterRepoStub, testConfiguration)
   val now = DateTimeUtils.now
 
   def toCounterAndPreference(ups: UpdatedPrintSuppressions): (Int, PrintPreference, Instant) =

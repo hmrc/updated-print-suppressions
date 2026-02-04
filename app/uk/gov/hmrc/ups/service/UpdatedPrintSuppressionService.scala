@@ -46,7 +46,8 @@ class UpdatedPrintSuppressionService @Inject() (
     new UpsRepository(
       mongoComponent,
       LocalDate.now(),
-      mongoCounterRepository
+      mongoCounterRepository,
+      configuration
     )
 
   def process(request: NotifySubscriberRequest): EitherT[Future, Throwable, Unit] =

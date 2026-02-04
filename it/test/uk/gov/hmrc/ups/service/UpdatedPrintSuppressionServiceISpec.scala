@@ -39,7 +39,10 @@ class UpdatedPrintSuppressionServiceISpec
 
   trait Setup {
     implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-    val config = Configuration(data = ("form-types.saAll", List("abc")))
+    val config = Configuration(
+      "form-types.saAll"                              -> List("abc"),
+      "updatedPrintSuppressions.expiryDurationInDays" -> 30
+    )
 
     private val counterRepository = inject[MongoCounterRepository]
 
@@ -47,7 +50,8 @@ class UpdatedPrintSuppressionServiceISpec
       new UpsRepository(
         mongoComponent,
         LocalDate.now(),
-        counterRepository
+        counterRepository,
+        config
       )
 
     val service = new UpdatedPrintSuppressionService(mongoComponent, counterRepository, config)
