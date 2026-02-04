@@ -20,14 +20,12 @@ import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc.{ QueryStringBindable, Result }
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.ups.model.{ Limit, PastLocalDate, PrintPreference, UpdatedPrintPreferences }
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
-
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpsRepository }
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.math.BigDecimal.RoundingMode
-import play.api.mvc.Results._
+import play.api.mvc.Results.*
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.utils.DateTimeUtils
-
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -47,7 +45,7 @@ class UpdatedOn @Inject() (mongoComponent: MongoComponent, counterRepository: Mo
     maybeUpdatedOn match {
       case Some(Right(updatedOn)) =>
         val upsRepository =
-          new UpdatedPrintSuppressionsRepository(mongoComponent, updatedOn.value, counterRepository)
+          new UpsRepository(mongoComponent, updatedOn.value, counterRepository)
         val limit = optLimit.getOrElse(Limit.max)
         val offset = optOffset.getOrElse(1)
         for {
@@ -91,7 +89,7 @@ class UpdatedOn @Inject() (mongoComponent: MongoComponent, counterRepository: Mo
 
   def insert(date: String, printPreference: PrintPreference): Future[Result] = {
     val dtf: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    new UpdatedPrintSuppressionsRepository(
+    new UpsRepository(
       mongoComponent,
       LocalDate.parse(date, dtf),
       counterRepository

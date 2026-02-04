@@ -22,7 +22,7 @@ import uk.gov.hmrc.domain.SaUtr
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpsRepository }
 
 import java.time.{ Instant, LocalDate }
 import javax.inject.{ Inject, Singleton }
@@ -42,8 +42,8 @@ class UpdatedPrintSuppressionService @Inject() (
       .getOrElse(throw new RuntimeException(s"configuration property form-types is not set"))
       .toList
 
-  def repository(): UpdatedPrintSuppressionsRepository =
-    new UpdatedPrintSuppressionsRepository(
+  def repository(): UpsRepository =
+    new UpsRepository(
       mongoComponent,
       LocalDate.now(),
       mongoCounterRepository

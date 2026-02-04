@@ -59,7 +59,7 @@ trait TestServer
 
   implicit val wsClient: WSClient = app.injector.instanceOf[WSClient]
 
-  val testCounterRepository = app.injector.instanceOf[MongoCounterRepository]
+  val testCounterRepository: MongoCounterRepository = app.injector.instanceOf[MongoCounterRepository]
 
   override def beforeEach(): Unit =
     SharedMetricRegistries.clear()
