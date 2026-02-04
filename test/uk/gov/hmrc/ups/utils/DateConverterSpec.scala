@@ -19,6 +19,7 @@ package uk.gov.hmrc.ups.utils
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.must.Matchers.*
+import uk.gov.hmrc.ups.TestData.{ TEST_DAY_1, TEST_MONTH_11, TEST_YEAR_2025, TEST_YEAR_2026 }
 
 import java.time.format.DateTimeParseException
 import java.time.{ Instant, LocalDate, ZoneId }
@@ -29,7 +30,7 @@ class DateConverterSpec extends AnyWordSpec with ScalaFutures {
     "parse a valid date string" in {
       val date = "2026-11-01"
       val result = DateConverter.parseToLocalDate(date)
-      result mustBe LocalDate.of(2026, 11, 1)
+      result mustBe LocalDate.of(TEST_YEAR_2026, TEST_MONTH_11, TEST_DAY_1)
     }
 
     "throw DateTimeParseException for invalid format" in {
@@ -42,7 +43,7 @@ class DateConverterSpec extends AnyWordSpec with ScalaFutures {
 
   "formatToString from LocalDate" should {
     "format a LocalDate to ISO date string" in {
-      val date = LocalDate.of(2025, 11, 1)
+      val date = LocalDate.of(TEST_YEAR_2025, TEST_MONTH_11, TEST_DAY_1)
       val result = DateConverter.formatToString(date)
       result mustBe "2025-11-01"
     }
@@ -50,7 +51,7 @@ class DateConverterSpec extends AnyWordSpec with ScalaFutures {
 
   "dateFormatter" should {
     "be ISO_DATE format (yyyy-MM-dd)" in {
-      val date = LocalDate.of(2025, 11, 1)
+      val date = LocalDate.of(TEST_YEAR_2025, TEST_MONTH_11, TEST_DAY_1)
       val formatted = DateConverter.formatToString(date)
       formatted mustBe "2025-11-01"
     }

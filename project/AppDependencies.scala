@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-import play.core.PlayVersion
 import play.sbt.PlayImport.ws
-import sbt._
+import sbt.*
 
 object AppDependencies {
 
-  val hmrcMongo = "2.10.0"
+  val hmrcMongo = "2.11.0"
   val bootstrapBackend = "9.19.0"
   val pekkoVersion: String = "1.0.3"
 
-  val compile = Seq(
+  val compile: Seq[ModuleID] = Seq(
     ws,
     "uk.gov.hmrc"       %% "bootstrap-backend-play-30"         % bootstrapBackend,
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-work-item-repo-play-30" % hmrcMongo,
@@ -33,19 +32,19 @@ object AppDependencies {
     "org.typelevel"     %% "cats-core"                         % "2.13.0"
   )
 
-  val test = Seq(
-    "uk.gov.hmrc"            %% "bootstrap-test-play-30"    % bootstrapBackend % "test",
-    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30"   % hmrcMongo        % "test",
-    "org.scalatestplus"      %% "mockito-3-4"               % "3.2.10.0"       % "test",
-    "org.scalatestplus.play" %% "scalatestplus-play"        % "7.0.2"          % "test",
+  val test: Seq[ModuleID] = Seq(
+    "uk.gov.hmrc"            %% "bootstrap-test-play-30"  % bootstrapBackend % "test",
+    "uk.gov.hmrc.mongo"      %% "hmrc-mongo-test-play-30" % hmrcMongo        % "test",
+    "org.scalatestplus"      %% "mockito-3-4"             % "3.2.10.0"       % "test",
+    "org.scalatestplus.play" %% "scalatestplus-play"      % "7.0.2"          % "test",
     // Core Pekko Stream testkit
-    "org.apache.pekko"       %% "pekko-stream-testkit"      % pekkoVersion     % Test,
+    "org.apache.pekko" %% "pekko-stream-testkit" % pekkoVersion % Test,
     // Classic actor testkit (for TestKit base class)
-    "org.apache.pekko"       %% "pekko-testkit"             % pekkoVersion     % Test,
-    "org.apache.pekko"       %% "pekko-actor-testkit-typed" % pekkoVersion     % Test
+    "org.apache.pekko" %% "pekko-testkit"             % pekkoVersion % Test,
+    "org.apache.pekko" %% "pekko-actor-testkit-typed" % pekkoVersion % Test
   )
 
-  val it = Seq(
+  val it: Seq[ModuleID] = Seq(
     "uk.gov.hmrc"       %% "bootstrap-test-play-30"  % bootstrapBackend % "it/test",
     "uk.gov.hmrc.mongo" %% "hmrc-mongo-test-play-30" % hmrcMongo        % "it/test"
   )
