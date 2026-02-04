@@ -57,7 +57,8 @@ class RandomDataGenerator
           new ObjectId(),
           n,
           PrintPreference(s"anId_$n", "anId", List("f1", "f2")),
-          DateTimeUtils.now
+          DateTimeUtils.now,
+          LocalDate.now().minusDays(1)
         )
 
   }

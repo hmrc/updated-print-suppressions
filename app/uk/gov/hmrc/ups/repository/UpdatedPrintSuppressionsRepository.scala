@@ -92,7 +92,7 @@ class UpdatedPrintSuppressionsRepository @Inject() (
       .next(counterRepoDate)
       .flatMap { counter =>
         collection
-          .insertOne(UpdatedPrintSuppressions(new ObjectId(), counter, printPreference, updatedAt))
+          .insertOne(UpdatedPrintSuppressions(new ObjectId(), counter, printPreference, updatedAt, date))
           .toSingle()
           .toFuture()
       }

@@ -27,7 +27,7 @@ import play.api.Logger
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.updatedAtAsJson
+import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.{ localDateFormat, updatedAtAsJson }
 import java.time.{ Instant, LocalDate }
 import javax.inject.Inject
 import scala.concurrent.{ ExecutionContext, Future }
@@ -43,16 +43,20 @@ class UpsRepository @Inject() (
       UpdatedPrintSuppressions.formats,
       List(
         IndexModel(
-          Indexes.ascending("counter"),
+          Indexes.compoundIndex(Indexes.ascending("date"), Indexes.ascending("counter")),
           IndexOptions()
-            .name("counterIdx")
+            .name("dateCounterIdx")
             .unique(true)
             .sparse(false)
         ),
         IndexModel(
-          Indexes.ascending("printPreference.id", "printPreference.idType"),
+          Indexes.compoundIndex(
+            Indexes.ascending("date"),
+            Indexes.ascending("printPreference.id"),
+            Indexes.ascending("printPreference.idType")
+          ),
           IndexOptions()
-            .name("uniquePreferenceId")
+            .name("uniquePreferenceIdPerDay")
             .unique(true)
             .sparse(false)
         ),
@@ -68,9 +72,12 @@ class UpsRepository @Inject() (
   private[this] val counterRepoDate = UpdatedPrintSuppressions.toString(date)
 
   def find(offset: Long, limit: Int): Future[List[PrintPreference]] = {
-    val query = Filters.and(Filters.gte("counter", offset), Filters.lt("counter", offset + limit))
-    val e: Future[Seq[UpdatedPrintSuppressions]] = collection.find(query).toFuture()
-    e.map(_.map(ups => ups.printPreference).toList)
+    val query = Filters.and(
+      Filters.equal("date", Codecs.toBson(date)),
+      Filters.gte("counter", offset),
+      Filters.lt("counter", offset + limit)
+    )
+    collection.find(query).toFuture().map(_.map(_.printPreference).toList)
   }
 
   private def updateOnInsert(
@@ -96,7 +103,7 @@ class UpsRepository @Inject() (
       .next(counterRepoDate)
       .flatMap { counter =>
         collection
-          .insertOne(UpdatedPrintSuppressions(new ObjectId(), counter, printPreference, updatedAt))
+          .insertOne(UpdatedPrintSuppressions(new ObjectId(), counter, printPreference, updatedAt, date))
           .toSingle()
           .toFuture()
       }
@@ -108,6 +115,7 @@ class UpsRepository @Inject() (
 
   def insert(printPreference: PrintPreference, updatedAt: Instant): Future[Unit] = {
     val selector = Filters.and(
+      Filters.equal("date", Codecs.toBson(date)),
       Filters.equal("printPreference.id", printPreference.id),
       Filters.equal("printPreference.idType", printPreference.idType)
     )
@@ -123,5 +131,6 @@ class UpsRepository @Inject() (
       .map[Unit](_ => ())
   }
 
-  def count(): Future[Long] = collection.countDocuments().toFuture()
+  def count(): Future[Long] =
+    collection.countDocuments(Filters.equal("date", Codecs.toBson(date))).toFuture()
 }
