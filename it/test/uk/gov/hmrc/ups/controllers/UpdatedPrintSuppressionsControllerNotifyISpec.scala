@@ -36,7 +36,7 @@ import play.api.libs.json.Json
 import play.api.test.Helpers.CONTENT_TYPE
 import play.api.test.{ FakeHeaders, FakeRequest, Injecting }
 import uk.gov.hmrc.mongo.test.MongoSupport
-import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressionsRepository
+import uk.gov.hmrc.ups.repository.UpsRepository
 
 import scala.concurrent.ExecutionContext
 
@@ -54,7 +54,7 @@ class UpdatedPrintSuppressionsControllerNotifyISpec
     .build()
 
   private val controller = inject[UpdatedPrintSuppressionsController]
-  private val repo = inject[UpdatedPrintSuppressionsRepository]
+  private val repo = inject[UpsRepository]
 
   override protected def beforeEach(): Unit = {
     repo.collection.deleteMany(Filters.empty()).toFuture().futureValue

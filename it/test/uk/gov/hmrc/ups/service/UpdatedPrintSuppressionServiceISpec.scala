@@ -27,9 +27,8 @@ import play.api.test.Injecting
 import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.NotifySubscriberRequest
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpsRepository }
 import uk.gov.hmrc.ups.utils.DateTimeUtils
-
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext
 
@@ -40,15 +39,19 @@ class UpdatedPrintSuppressionServiceISpec
 
   trait Setup {
     implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
-    val config = Configuration(data = ("form-types.saAll", List("abc")))
+    val config = Configuration(
+      "form-types.saAll"                              -> List("abc"),
+      "updatedPrintSuppressions.expiryDurationInDays" -> 30
+    )
 
     private val counterRepository = inject[MongoCounterRepository]
 
-    val repository: UpdatedPrintSuppressionsRepository =
-      new UpdatedPrintSuppressionsRepository(
+    val repository: UpsRepository =
+      new UpsRepository(
         mongoComponent,
         LocalDate.now(),
-        counterRepository
+        counterRepository,
+        config
       )
 
     val service = new UpdatedPrintSuppressionService(mongoComponent, counterRepository, config)

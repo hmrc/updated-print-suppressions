@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ups.controllers
 
+import play.api.Configuration
 import play.api.libs.json.JsValue
 import play.api.mvc._
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController

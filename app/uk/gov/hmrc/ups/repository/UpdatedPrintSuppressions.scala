@@ -24,12 +24,19 @@ import uk.gov.hmrc.ups.model.PrintPreference
 import java.time.format.DateTimeFormatter
 import java.time.{ Instant, LocalDate }
 
-case class UpdatedPrintSuppressions(_id: ObjectId, counter: Int, printPreference: PrintPreference, updatedAt: Instant)
+case class UpdatedPrintSuppressions(
+  _id: ObjectId,
+  counter: Int,
+  printPreference: PrintPreference,
+  updatedAt: Instant,
+  date: LocalDate
+)
 
 object UpdatedPrintSuppressions {
   implicit val objectIdFormat: Format[ObjectId] = MongoFormats.objectIdFormat
   implicit val pp: OFormat[PrintPreference] = PrintPreference.formats
   implicit val isoDateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
+  implicit val localDateFormat: Format[LocalDate] = MongoJavatimeFormats.localDateFormat
 
   implicit val formats: OFormat[UpdatedPrintSuppressions] = Json.format[UpdatedPrintSuppressions]
 

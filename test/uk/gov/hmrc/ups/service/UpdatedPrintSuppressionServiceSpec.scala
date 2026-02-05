@@ -27,7 +27,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository }
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpsRepository }
 import uk.gov.hmrc.ups.utils.DateTimeUtils
 
 import java.time.Instant
@@ -45,10 +45,10 @@ class UpdatedPrintSuppressionServiceSpec
     private val mongoComponent = mock[MongoComponent]
     private val counterRepository = mock[MongoCounterRepository]
 
-    val mockRepo: UpdatedPrintSuppressionsRepository = mock[UpdatedPrintSuppressionsRepository]
+    val mockRepo: UpsRepository = mock[UpsRepository]
 
     val service = new UpdatedPrintSuppressionService(mongoComponent, counterRepository, config) {
-      override def repository(): UpdatedPrintSuppressionsRepository = mockRepo
+      override def repository(): UpsRepository = mockRepo
     }
   }
 

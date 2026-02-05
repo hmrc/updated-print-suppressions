@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2025 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,47 +16,63 @@
 
 package uk.gov.hmrc.ups.repository
 
+import com.google.inject.Singleton
 import org.mongodb.scala.MongoWriteException
 import org.mongodb.scala.bson.ObjectId
-import org.mongodb.scala.model._
+import org.mongodb.scala.model.*
 import org.mongodb.scala.result.UpdateResult
 import org.mongodb.scala.SingleObservableFuture
 import org.mongodb.scala.ObservableFuture
 import org.mongodb.scala.ToSingleObservablePublisher
-import play.api.Logger
+import play.api.{ Configuration, Logger }
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.{ Codecs, PlayMongoRepository }
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.updatedAtAsJson
+import uk.gov.hmrc.ups.repository.UpdatedPrintSuppressions.{ localDateFormat, updatedAtAsJson }
 
 import java.time.{ Instant, LocalDate }
-import javax.inject.{ Inject, Singleton }
+import javax.inject.Inject
+import scala.concurrent.duration.DAYS
 import scala.concurrent.{ ExecutionContext, Future }
 
 @Singleton
-class UpdatedPrintSuppressionsRepository @Inject() (
+class UpsRepository @Inject() (
   mongoComponent: MongoComponent,
   date: LocalDate,
-  counterRepo: MongoCounterRepository
+  counterRepo: MongoCounterRepository,
+  configuration: Configuration
 )(implicit ec: ExecutionContext)
     extends PlayMongoRepository[UpdatedPrintSuppressions](
       mongoComponent,
-      UpdatedPrintSuppressions.repoNameTemplate(date),
+      "updated_print_suppressions",
       UpdatedPrintSuppressions.formats,
       List(
         IndexModel(
-          Indexes.ascending("counter"),
+          Indexes.compoundIndex(Indexes.ascending("date"), Indexes.ascending("counter")),
           IndexOptions()
-            .name("counterIdx")
+            .name("dateCounterIdx")
             .unique(true)
             .sparse(false)
         ),
         IndexModel(
-          Indexes.ascending("printPreference.id", "printPreference.idType"),
+          Indexes.compoundIndex(
+            Indexes.ascending("date"),
+            Indexes.ascending("printPreference.id"),
+            Indexes.ascending("printPreference.idType")
+          ),
           IndexOptions()
-            .name("uniquePreferenceId")
+            .name("uniquePreferenceIdPerDay")
             .unique(true)
             .sparse(false)
+        ),
+        IndexModel(
+          Indexes.ascending("updatedAt"),
+          IndexOptions()
+            .name("updatedAtTtlIdx")
+            .expireAfter(
+              configuration.get[Long]("updatedPrintSuppressions.expiryDurationInDays"),
+              DAYS
+            )
         )
       )
     ) {
@@ -64,9 +80,12 @@ class UpdatedPrintSuppressionsRepository @Inject() (
   private[this] val counterRepoDate = UpdatedPrintSuppressions.toString(date)
 
   def find(offset: Long, limit: Int): Future[List[PrintPreference]] = {
-    val query = Filters.and(Filters.gte("counter", offset), Filters.lt("counter", offset + limit))
-    val e: Future[Seq[UpdatedPrintSuppressions]] = collection.find(query).toFuture()
-    e.map(_.map(ups => ups.printPreference).toList)
+    val query = Filters.and(
+      Filters.equal("date", Codecs.toBson(date)),
+      Filters.gte("counter", offset),
+      Filters.lt("counter", offset + limit)
+    )
+    collection.find(query).toFuture().map(_.map(_.printPreference).toList)
   }
 
   private def updateOnInsert(
@@ -92,7 +111,7 @@ class UpdatedPrintSuppressionsRepository @Inject() (
       .next(counterRepoDate)
       .flatMap { counter =>
         collection
-          .insertOne(UpdatedPrintSuppressions(new ObjectId(), counter, printPreference, updatedAt))
+          .insertOne(UpdatedPrintSuppressions(new ObjectId(), counter, printPreference, updatedAt, date))
           .toSingle()
           .toFuture()
       }
@@ -104,6 +123,7 @@ class UpdatedPrintSuppressionsRepository @Inject() (
 
   def insert(printPreference: PrintPreference, updatedAt: Instant): Future[Unit] = {
     val selector = Filters.and(
+      Filters.equal("date", Codecs.toBson(date)),
       Filters.equal("printPreference.id", printPreference.id),
       Filters.equal("printPreference.idType", printPreference.idType)
     )
@@ -119,5 +139,6 @@ class UpdatedPrintSuppressionsRepository @Inject() (
       .map[Unit](_ => ())
   }
 
-  def count(): Future[Long] = collection.countDocuments().toFuture()
+  def count(): Future[Long] =
+    collection.countDocuments(Filters.equal("date", Codecs.toBson(date))).toFuture()
 }

@@ -19,7 +19,7 @@ import sbt.*
 
 object AppDependencies {
 
-  val hmrcMongo = "2.11.0"
+  val hmrcMongo = "2.12.0"
   val bootstrapBackend = "9.19.0"
   val pekkoVersion: String = "1.0.3"
 
