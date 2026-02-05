@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ups.repository
 
+import com.google.inject.Singleton
 import org.mongodb.scala.MongoWriteException
 import org.mongodb.scala.bson.ObjectId
 import org.mongodb.scala.model.*
@@ -34,6 +35,7 @@ import javax.inject.Inject
 import scala.concurrent.duration.DAYS
 import scala.concurrent.{ ExecutionContext, Future }
 
+@Singleton
 class UpsRepository @Inject() (
   mongoComponent: MongoComponent,
   date: LocalDate,
