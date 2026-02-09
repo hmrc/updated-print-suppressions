@@ -27,7 +27,7 @@ import play.api.test.Helpers.*
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.test.MongoSupport
 import uk.gov.hmrc.ups.model.PrintPreference
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions, UpsRepository }
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressions, UpdatedPrintSuppressionsRepository, UpsRepository }
 
 import java.time.{ LocalDate, ZoneOffset }
 import java.time.format.DateTimeFormatter
@@ -51,11 +51,11 @@ trait TestSetup extends PlaySpec with ScalaFutures with BeforeAndAfterEach with 
   implicit val upsFormats: OFormat[UpdatedPrintSuppressions] = UpdatedPrintSuppressions.formats
   implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 
-  lazy val repoToday: UpsRepository =
-    new UpsRepository(mongoComponent, today, mongoCounterRepository, configuration)
+  lazy val repoToday: UpdatedPrintSuppressionsRepository =
+    new UpdatedPrintSuppressionsRepository(mongoComponent, today, mongoCounterRepository)
 
-  lazy val repoYesterday: UpsRepository =
-    new UpsRepository(mongoComponent, yesterday, mongoCounterRepository, configuration)
+  lazy val repoYesterday: UpdatedPrintSuppressionsRepository =
+    new UpdatedPrintSuppressionsRepository(mongoComponent, yesterday, mongoCounterRepository)
 
   def todayAtStartOfDay = today.atStartOfDay().toInstant(ZoneOffset.UTC)
   def yesterdayAtStartOfDay = yesterday.atStartOfDay().toInstant(ZoneOffset.UTC)

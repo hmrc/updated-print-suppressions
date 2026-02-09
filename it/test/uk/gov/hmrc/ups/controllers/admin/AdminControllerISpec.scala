@@ -42,10 +42,10 @@ class AdminControllerISpec extends PlaySpec with TestServer with BeforeAndAfterE
       )
 
       private val all: Future[Seq[UpdatedPrintSuppressions]] = repoYesterday.collection.find().toFuture()
+      private val results = await(all)
 
-      await(all).map { x =>
-        (x.counter, preference)
-      } mustBe List((1, preference))
+      results.size mustBe 1
+      results.head.printPreference mustBe preference
     }
 
     "fetch a new PrintPreference created today using admin end-point" in new TestSetup {
