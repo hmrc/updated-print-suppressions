@@ -22,7 +22,7 @@ import uk.gov.hmrc.domain.SaUtr
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpsRepository }
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository, UpsRepository }
 
 import java.time.{ Instant, LocalDate }
 import javax.inject.{ Inject, Singleton }
@@ -50,6 +50,13 @@ class UpdatedPrintSuppressionService @Inject() (
       configuration
     )
 
+  def oldRepository(): UpdatedPrintSuppressionsRepository =
+    new UpdatedPrintSuppressionsRepository(
+      mongoComponent,
+      LocalDate.now(),
+      mongoCounterRepository
+    )
+
   def process(request: NotifySubscriberRequest): EitherT[Future, Throwable, Unit] =
     for {
       pp  <- createPrintPreference(request)
@@ -73,9 +80,11 @@ class UpdatedPrintSuppressionService @Inject() (
   private def insert(pp: PrintPreference, time: Instant): EitherT[Future, Throwable, Unit] =
     EitherT {
       Try {
-        repository()
-          .insert(pp, time)
-          .map(a => Right(a))
+        val upsRepoInsert = repository().insert(pp, time)
+        val oldRepoInsert = oldRepository().insert(pp, time)
+        Future
+          .sequence(Seq(upsRepoInsert, oldRepoInsert))
+          .map(_ => Right(()))
           .recover(ex => Left(ex))
       } match {
         case Success(v)  => v
