@@ -17,7 +17,8 @@
 package uk.gov.hmrc.ups.repository
 
 import org.mongodb.scala.bson.ObjectId
-import play.api.libs.json.{ Format, JsValue, Json, OFormat }
+import play.api.libs.json.{ Format, JsValue, Json, OFormat, OWrites, Reads, __ }
+import play.api.libs.functional.syntax._
 import uk.gov.hmrc.mongo.play.json.formats.{ MongoFormats, MongoJavatimeFormats }
 import uk.gov.hmrc.ups.model.PrintPreference
 
@@ -38,7 +39,19 @@ object UpdatedPrintSuppressions {
   implicit val isoDateFormat: Format[Instant] = MongoJavatimeFormats.instantFormat
   implicit val localDateFormat: Format[LocalDate] = MongoJavatimeFormats.localDateFormat
 
-  implicit val formats: OFormat[UpdatedPrintSuppressions] = Json.format[UpdatedPrintSuppressions]
+  implicit val formats: OFormat[UpdatedPrintSuppressions] = {
+    val reads: Reads[UpdatedPrintSuppressions] = (
+      (__ \ "_id").read[ObjectId] and
+        (__ \ "counter").read[Int] and
+        (__ \ "printPreference").read[PrintPreference] and
+        (__ \ "updatedAt").read[Instant] and
+        (__ \ "date").readWithDefault[LocalDate](LocalDate.EPOCH)
+    )(UpdatedPrintSuppressions.apply _)
+
+    val writes: OWrites[UpdatedPrintSuppressions] = Json.writes[UpdatedPrintSuppressions]
+
+    OFormat(reads, writes)
+  }
 
   val datePattern = "yyyyMMdd"
 
