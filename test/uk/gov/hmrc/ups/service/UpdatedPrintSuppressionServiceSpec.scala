@@ -27,7 +27,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.ups.model.MessageDeliveryFormat.Digital
 import uk.gov.hmrc.ups.model.{ NotifySubscriberRequest, PrintPreference }
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpsRepository }
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository, UpsRepository }
 import uk.gov.hmrc.ups.utils.DateTimeUtils
 
 import java.time.Instant
@@ -46,9 +46,11 @@ class UpdatedPrintSuppressionServiceSpec
     private val counterRepository = mock[MongoCounterRepository]
 
     val mockRepo: UpsRepository = mock[UpsRepository]
+    val mockOldRepo: UpdatedPrintSuppressionsRepository = mock[UpdatedPrintSuppressionsRepository]
 
     val service = new UpdatedPrintSuppressionService(mongoComponent, counterRepository, config) {
       override def repository(): UpsRepository = mockRepo
+      override def oldRepository(): UpdatedPrintSuppressionsRepository = mockOldRepo
     }
   }
 
@@ -56,6 +58,8 @@ class UpdatedPrintSuppressionServiceSpec
 
     "process preference success" in new Setup {
       when(mockRepo.insert(any[PrintPreference], any[Instant]))
+        .thenReturn(Future.successful(()))
+      when(mockOldRepo.insert(any[PrintPreference], any[Instant]))
         .thenReturn(Future.successful(()))
 
       private val nsr = NotifySubscriberRequest(Digital, DateTimeUtils.now, Map("sautr" -> "sautr1"))
@@ -67,6 +71,8 @@ class UpdatedPrintSuppressionServiceSpec
     "process preference throws" in new Setup {
       when(mockRepo.insert(any[PrintPreference], any[Instant]))
         .thenThrow(new RuntimeException("whatever"))
+      when(mockOldRepo.insert(any[PrintPreference], any[Instant]))
+        .thenReturn(Future.successful(()))
 
       private val nsr = NotifySubscriberRequest(Digital, DateTimeUtils.now, Map("sautr" -> "sautr1"))
       private val eitherResult = service.process(nsr).value.futureValue

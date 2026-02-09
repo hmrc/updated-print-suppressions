@@ -31,11 +31,19 @@ import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpsRepository }
 import uk.gov.hmrc.ups.utils.DateTimeUtils
 import java.time.LocalDate
 import scala.concurrent.ExecutionContext
+import org.scalatest.BeforeAndAfterEach
+import org.mongodb.scala.ObservableFuture
 
 class UpdatedPrintSuppressionServiceISpec
     extends AnyFreeSpec with Matchers with TestSuite with GuiceOneServerPerSuite with ScalaFutures
-    with IntegrationPatience with MongoSupport with Injecting {
+    with IntegrationPatience with MongoSupport with Injecting with BeforeAndAfterEach {
   this: Suite =>
+
+  override def beforeEach(): Unit = {
+    mongoComponent.database.getCollection("updated_print_suppressions").drop().toFuture().futureValue
+    mongoComponent.database.getCollection(s"updated_print_suppressions_${java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))}").drop().toFuture().futureValue
+    super.beforeEach()
+  }
 
   trait Setup {
     implicit val ec: ExecutionContext = ExecutionContext.Implicits.global
