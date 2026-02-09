@@ -47,13 +47,13 @@ class UpdatedOn @Inject() (
   ): Future[Result] =
     maybeUpdatedOn match {
       case Some(Right(updatedOn)) =>
-        val upsRepository =
-          new UpsRepository(mongoComponent, updatedOn.value, counterRepository, configuration)
+        val repository =
+          new UpdatedPrintSuppressionsRepository(mongoComponent, updatedOn.value, counterRepository)
         val limit = optLimit.getOrElse(Limit.max)
         val offset = optOffset.getOrElse(1)
         for {
-          count   <- upsRepository.count()
-          updates <- upsRepository.find(offset.toLong, limit.value)
+          count   <- repository.count()
+          updates <- repository.find(offset.toLong, limit.value)
         } yield {
           val pages: Long = (BigDecimal(count) / BigDecimal(limit.value)).setScale(0, RoundingMode.UP).longValue
           Ok(
