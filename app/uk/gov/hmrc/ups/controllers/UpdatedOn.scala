@@ -48,7 +48,7 @@ class UpdatedOn @Inject() (
     maybeUpdatedOn match {
       case Some(Right(updatedOn)) =>
         val repository =
-          new UpdatedPrintSuppressionsRepository(mongoComponent, updatedOn.value, counterRepository)
+          new UpsRepository(mongoComponent, updatedOn.value, counterRepository, configuration)
         val limit = optLimit.getOrElse(Limit.max)
         val offset = optOffset.getOrElse(1)
         for {

@@ -80,6 +80,7 @@ class UpsRepository @Inject() (
   private[this] val counterRepoDate = UpdatedPrintSuppressions.toString(date)
 
   def find(offset: Long, limit: Int): Future[List[PrintPreference]] = {
+    logger.warn("Find from collection updated_print_suppressions")
     val query = Filters.and(
       Filters.equal("date", Codecs.toBson(date)),
       Filters.gte("counter", offset),

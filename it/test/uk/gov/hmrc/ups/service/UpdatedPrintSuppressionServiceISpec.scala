@@ -41,7 +41,13 @@ class UpdatedPrintSuppressionServiceISpec
 
   override def beforeEach(): Unit = {
     mongoComponent.database.getCollection("updated_print_suppressions").drop().toFuture().futureValue
-    mongoComponent.database.getCollection(s"updated_print_suppressions_${java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))}").drop().toFuture().futureValue
+    mongoComponent.database
+      .getCollection(
+        s"updated_print_suppressions_${java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd"))}"
+      )
+      .drop()
+      .toFuture()
+      .futureValue
     super.beforeEach()
   }
 
