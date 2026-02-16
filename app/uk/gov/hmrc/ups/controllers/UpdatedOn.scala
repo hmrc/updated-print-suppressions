@@ -21,7 +21,7 @@ import play.api.libs.json.{ Json, OFormat }
 import play.api.mvc.{ QueryStringBindable, Result }
 import uk.gov.hmrc.http.BadRequestException
 import uk.gov.hmrc.ups.model.{ Limit, PastLocalDate, PrintPreference, UpdatedPrintPreferences }
-import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpdatedPrintSuppressionsRepository, UpsRepository }
+import uk.gov.hmrc.ups.repository.{ MongoCounterRepository, UpsRepository }
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.math.BigDecimal.RoundingMode
 import play.api.mvc.Results.*
@@ -95,21 +95,12 @@ class UpdatedOn @Inject() (
     val parsedDate = LocalDate.parse(date, dtf)
     val now = DateTimeUtils.now
 
-    val upsRepoInsert = new UpsRepository(
+    new UpsRepository(
       mongoComponent,
       parsedDate,
       counterRepository,
       configuration
     ).insert(printPreference, now)
-
-    val oldRepoInsert = new UpdatedPrintSuppressionsRepository(
-      mongoComponent,
-      parsedDate,
-      counterRepository
-    ).insert(printPreference, now)
-
-    Future
-      .sequence(Seq(upsRepoInsert, oldRepoInsert))
       .map { _ =>
         Ok("Record inserted")
       }
