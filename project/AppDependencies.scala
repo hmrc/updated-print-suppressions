@@ -20,7 +20,7 @@ import sbt.*
 object AppDependencies {
 
   val hmrcMongo = "2.12.0"
-  val bootstrapBackend = "9.19.0"
+  val bootstrapBackend = "10.6.0"
   val pekkoVersion: String = "1.0.3"
 
   val compile: Seq[ModuleID] = Seq(
